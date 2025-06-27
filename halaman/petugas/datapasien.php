@@ -300,7 +300,7 @@
                                                                     <td class="col-md-3">
                                                                         <input type="text" name="keluhankunjungan[]"
                                                                             class="form-control nilai_list"
-                                                                            placeholder="Keluhan" />
+                                                                            placeholder="Diagnosa" />
                                                                     </td>
                                                                     <td class="col-md-1">
                                                                         <input type="text" name="polikunjungan[]"

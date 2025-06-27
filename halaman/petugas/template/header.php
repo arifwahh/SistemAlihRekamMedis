@@ -315,11 +315,24 @@ FROM (
             </a>
           </li>
           <li class="nav-item">
-            <a href="home.php" class="nav-link">
+            <a href="beritaacara.php" class="nav-link">
               <i class="nav-icon fas fa-file"></i>
               <p>
                 BERITA ACARA
-                <span class="right badge badge-danger">-</span>
+                <?php
+                // Koneksi database (gunakan variabel $koneksi jika sudah ada)
+                if (!isset($koneksi)) {
+                  $koneksi = mysqli_connect("localhost", "u756913646_sistemalih", "JKT48gamers?", "u756913646_sistemalih");
+                  if (mysqli_connect_errno()) {
+                    echo "Koneksi database gagal: " . mysqli_connect_error();
+                  }
+                }
+                $query_berita = "SELECT COUNT(*) AS total FROM berita_acara";
+                $result_berita = mysqli_query($koneksi, $query_berita);
+                $data_berita = mysqli_fetch_assoc($result_berita);
+                $totalBerita = $data_berita['total'];
+                ?>
+                <span class="right badge badge-danger"><?php echo $totalBerita; ?></span>
               </p>
             </a>
           </li>

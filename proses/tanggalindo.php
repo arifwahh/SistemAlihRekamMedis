@@ -1,5 +1,5 @@
 <?php
-function tgl_indo($tanggal){
+function tgl_indo($tanggalJam){
 	$bulan = array (
 		1 =>   'Januari',
 		'Februari',
@@ -14,12 +14,21 @@ function tgl_indo($tanggal){
 		'November',
 		'Desember'
 	);
+	// Pisahkan tanggal dan jam
+	$parts = explode(' ', $tanggalJam);
+	$tanggal = $parts[0];
+	$jam = isset($parts[1]) ? $parts[1] : '';
+
 	$pecahkan = explode('-', $tanggal);
-	
-	// variabel pecahkan 0 = tanggal
-	// variabel pecahkan 1 = bulan
-	// variabel pecahkan 2 = tahun
- 
-	return $pecahkan[2] . ' ' . $bulan[ (int)$pecahkan[1] ] . ' ' . $pecahkan[0];
+
+	if (count($pecahkan) === 3 && is_numeric($pecahkan[1]) && isset($bulan[(int)$pecahkan[1]])) {
+		$hasil = $pecahkan[2] . ' ' . $bulan[(int)$pecahkan[1]] . ' ' . $pecahkan[0];
+		if ($jam != '') {
+			$hasil .= ' ' . $jam;
+		}
+		return $hasil;
+	} else {
+		return $tanggalJam; // return original if format is invalid
+	}
 }
 ?>

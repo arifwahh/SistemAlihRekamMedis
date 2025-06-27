@@ -2,6 +2,8 @@
     "require": {
         "phpoffice/phpspreadsheet": "^2.2",
         "dompdf/dompdf": "^3.1",
-        "phpmailer/phpmailer": "^6.9"
+        "phpmailer/phpmailer": "^6.9",
+        "mpdf/mpdf": "^8.2",
+        "fpdf/fpdf": "^1.86"
     }
 }

@@ -49,7 +49,9 @@ if($number > 0)
       $idpengguna = $_SESSION['idpengguna'];
       echo $idpengguna;
       $terupload = move_uploaded_file($file_tmp, $linkBerkas);
-      $addrm = mysqli_query($koneksi,"INSERT INTO rm VALUES ('','$norm','$idpasien','$idpengguna','$idkunjungan','-','$linkBerkas')");
+      date_default_timezone_set('Asia/Jakarta');
+      $tanggalSekarang = date('Y-m-d H:i:s');
+      $addrm = mysqli_query($koneksi,"INSERT INTO rm VALUES ('','$norm','$idpasien','$idpengguna','$idkunjungan','-','$linkBerkas','$tanggalSekarang')");
       if ($terupload && $addrm == 1) {
           header("Location: ../halaman/petugas/datapasien.php", true, 301);
           exit();

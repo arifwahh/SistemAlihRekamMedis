@@ -21,9 +21,62 @@
         <div class="container-fluid">
             <div class="row">
                 <div class="col-md-12">
-                    <p><button type="button" class="btn btn-default" data-toggle="modal" data-target="#modal-xl">Tambah
-                            Pasien</button>
-                            <a href="../../proses/eksportxls.php" target="_blank" class="btn btn-success"><i class="far fa-print"></i> &nbsp Export Excel</a></p>
+                    <p>
+                        <button type="button" class="btn btn-default" data-toggle="modal" data-target="#modal-xl">Tambah Pasien</button>
+                        <a href="../../proses/eksportxls.php" target="_blank" class="btn btn-success"><i class="far fa-print"></i> &nbsp Export Excel</a>
+                        <!-- Tombol Import Excel -->
+                        <button type="button" class="btn btn-info" data-toggle="modal" data-target="#importExcelModal">
+                            <i class="fa fa-upload"></i> Import Excel
+                        </button>
+                    </p>
+                </div>
+
+                <!-- Modal Import Excel -->
+                <div class="modal fade" id="importExcelModal" tabindex="-1" role="dialog" aria-labelledby="importExcelModalLabel" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <form action="../../proses/importpasien.php" method="post" enctype="multipart/form-data">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="importExcelModalLabel">Import Data Pasien dari Excel</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="alert alert-info">
+                                        <b>Format Excel harus sesuai urutan dan kolom berikut:</b>
+                                        <ul style="margin-bottom:0">
+                                            <li>NIK</li>
+                                            <li>Nama Pasien</li>
+                                            <li>Nama Kepala Keluarga Pasien</li>
+                                            <li>Jenis Kelamin (Laki Laki/Perempuan)</li>
+                                            <li>Pekerjaan</li>
+                                            <li>Tanggal Lahir (YYYY-MM-DD)</li>
+                                            <li>Agama</li>
+                                            <li>Alamat</li>
+                                            <li>Tanggal Kunjungan (YYYY-MM-DD, pisahkan koma jika lebih dari satu)</li>
+                                            <li>Diagnosa (pisahkan koma jika lebih dari satu)</li>
+                                            <li>Poli (pisahkan koma jika lebih dari satu)</li>
+                                            <li>Klinik (pisahkan koma jika lebih dari satu)</li>
+                                            <li>Biaya (BPJS/Umum, pisahkan koma jika lebih dari satu)</li>
+                                            <li>No BPJS (pisahkan koma jika lebih dari satu)</li>
+                                            <li>No Rekam Medis</li>
+                                            <!-- File PDF tidak diimport via excel -->
+                                        </ul>
+                                        <a href="../../proses/template_import_pasien.xlsx" class="btn btn-link">Download Template Excel</a>
+                                    </div>
+                                    <div class="form-group mt-2">
+                                        <label for="file_excel">Pilih File Excel (.xlsx, .xls):</label>
+                                        <input type="file" name="file_excel" id="file_excel" class="form-control" accept=".xlsx,.xls" required>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="submit" class="btn btn-primary">Import</button>
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
             <div class="row">
@@ -34,6 +87,25 @@
                         </div>
                         <!-- /.card-header -->
                         <div class="card-body">
+    <!-- Fitur Pencarian -->
+    <form method="get" class="form-inline mb-3">
+        <div class="form-group mr-2">
+            <select name="kategori" class="form-control">
+                <option value="no_rm" <?= (isset($_GET['kategori']) && $_GET['kategori'] == 'no_rm') ? 'selected' : '' ?>>No RM</option>
+                <option value="nik_pasien" <?= (isset($_GET['kategori']) && $_GET['kategori'] == 'nik_pasien') ? 'selected' : '' ?>>NIK</option>
+                <option value="nama_pasien" <?= (isset($_GET['kategori']) && $_GET['kategori'] == 'nama_pasien') ? 'selected' : '' ?>>Nama Pasien</option>
+                <option value="tanggal_lahir_pasien" <?= (isset($_GET['kategori']) && $_GET['kategori'] == 'tanggal_lahir_pasien') ? 'selected' : '' ?>>Tanggal Lahir</option>
+                <option value="jenis_kelamin_pasien" <?= (isset($_GET['kategori']) && $_GET['kategori'] == 'jenis_kelamin_pasien') ? 'selected' : '' ?>>Gender</option>
+                <option value="alamat_pasien" <?= (isset($_GET['kategori']) && $_GET['kategori'] == 'alamat_pasien') ? 'selected' : '' ?>>Alamat</option>
+            </select>
+        </div>
+        <div class="form-group mr-2">
+            <input type="text" name="keyword" class="form-control" placeholder="Cari..." value="<?= isset($_GET['keyword']) ? htmlspecialchars($_GET['keyword']) : '' ?>">
+        </div>
+        <button type="submit" class="btn btn-primary">Cari</button>
+        <a href="datapasien.php" class="btn btn-secondary ml-2">Reset</a>
+    </form>
+
     <table class="table table-bordered">
         <thead>
             <tr>
@@ -51,19 +123,49 @@
             <?php 
             include '../../proses/koneksi.php';
             include '../../proses/tanggalindo.php';
-            
+
             // Set limit dan offset
             $limit = 5;
-            $page = isset($_GET['page']) ? $_GET['page'] : 1;
+            $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
             $offset = ($page - 1) * $limit;
 
-            // Mengambil total jumlah data pasien untuk pagination
-            $result = mysqli_query($koneksi, "SELECT COUNT(*) as total FROM pasien");
+            // Pencarian
+            $where = "";
+            $join_rm = false;
+            if (!empty($_GET['kategori']) && !empty($_GET['keyword'])) {
+                $kategori = $_GET['kategori'];
+                $keyword = mysqli_real_escape_string($koneksi, $_GET['keyword']);
+                if ($kategori == 'no_rm') {
+                    // Join ke tabel rm
+                    $join_rm = true;
+                    $where = "WHERE rm.no_rm LIKE '%$keyword%'";
+                } else {
+                    $where = "WHERE $kategori LIKE '%$keyword%'";
+                }
+            }
+
+            // Hitung total data untuk pagination
+            if ($join_rm) {
+                $count_sql = "SELECT COUNT(DISTINCT pasien.id_pasien) as total FROM pasien 
+                              LEFT JOIN rm ON pasien.id_pasien = rm.id_pasien $where";
+            } else {
+                $count_sql = "SELECT COUNT(*) as total FROM pasien $where";
+            }
+            $result = mysqli_query($koneksi, $count_sql);
             $total_rows = mysqli_fetch_assoc($result)['total'];
             $total_pages = ceil($total_rows / $limit);
 
-            // Ambil data pasien dengan limit dan offset
-            $data = mysqli_query($koneksi, "SELECT * FROM pasien LIMIT $limit OFFSET $offset");
+            // Query data pasien
+            if ($join_rm) {
+                $sql = "SELECT pasien.* FROM pasien 
+                        LEFT JOIN rm ON pasien.id_pasien = rm.id_pasien 
+                        $where 
+                        GROUP BY pasien.id_pasien 
+                        LIMIT $limit OFFSET $offset";
+            } else {
+                $sql = "SELECT * FROM pasien $where LIMIT $limit OFFSET $offset";
+            }
+            $data = mysqli_query($koneksi, $sql);
             $no = $offset + 1;
 
             while ($d = mysqli_fetch_array($data)) { ?>
@@ -73,6 +175,8 @@
                         <?php 
                         $idpasien = $d['id_pasien'];
                         $rekam = mysqli_query($koneksi, "SELECT * FROM rm WHERE id_pasien = '$idpasien'");
+                        $rekamid = '';
+                        $linkrm = '';
                         while ($tampilrekam = mysqli_fetch_array($rekam)) {
                             $rekamid = $tampilrekam['no_rm'];
                             $linkrm = $tampilrekam['file_rm'];

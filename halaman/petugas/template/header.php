@@ -349,7 +349,7 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
                 <a href="rmmusnah.php" class="nav-link">
                    <i class="far fa-circle nav-icon"></i>
                   <p>
-                    TELAH MUSNAH
+                    Telah Musnah
                     <?php
                     // Koneksi database (gunakan variabel $koneksi jika sudah ada)
                     if (!isset($koneksi)) {

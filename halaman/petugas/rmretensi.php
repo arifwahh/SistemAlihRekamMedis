@@ -71,7 +71,29 @@
                                                 $kunjungan = mysqli_query($koneksi, "select MAX(tanggal_kunjungan) as knj from kunjungan where id_pasien = '$idpasien'");
                                                 while ($tampilkunjungan = mysqli_fetch_array($kunjungan)) { ?>
                                                     <td> <a href="#" data-toggle="modal" data-target="#edit<?php echo $idpasien ?>"> <?php echo tgl_indo(date($tampilkunjungan['knj'])); }?></a></td>
-                                                <td><span class="right badge badge-warning">Saved / Retensi</span></td>
+                                                <td>
+                                                    <span class="right badge badge-warning">Saved / Retensi</span>
+                                                    <a href="#" data-toggle="modal" data-target="#pdfModal<?php echo $idpasien; ?>" title="Lihat File PDF" style="margin-left:8px;">
+                                                        <i class="fa fa-folder-open"></i>
+                                                    </a>
+                                                </td>
+
+                                                <!-- Modal PDF -->
+                                                <div class="modal fade" id="pdfModal<?php echo $idpasien; ?>" tabindex="-1" role="dialog" aria-labelledby="pdfModalLabel<?php echo $idpasien; ?>" aria-hidden="true">
+                                                    <div class="modal-dialog modal-lg" role="document">
+                                                        <div class="modal-content">
+                                                            <div class="modal-header">
+                                                                <h5 class="modal-title" id="pdfModalLabel<?php echo $idpasien; ?>">File PDF Rekam Medis</h5>
+                                                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                                    <span aria-hidden="true">&times;</span>
+                                                                </button>
+                                                            </div>
+                                                            <div class="modal-body">
+                                                                <iframe src="../../pdf/rekam_medis/<?php echo $d['no_rm']; ?>.pdf" frameborder="0" width="100%" height="500px"></iframe>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </tr>
                                             <?php 
                                             include '../../proses/showkunjungan.php';

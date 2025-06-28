@@ -336,6 +336,15 @@ FROM (
               </p>
             </a>
           </li>
+          <li class="nav-item">
+            <a href="laporan.php" class="nav-link">
+              <i class="nav-icon fas fa-trash"></i>
+              <p>
+                GENERATE LAPORAN
+                <span class="right badge badge-danger">-</span>
+              </p>
+            </a>
+          </li>
           <li class="nav-header">-----------------------------------------</li>
           <li class="nav-item">
             <a href="iframe.html" class="nav-link">

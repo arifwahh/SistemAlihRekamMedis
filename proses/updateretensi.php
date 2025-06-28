@@ -28,12 +28,14 @@ require '../vendor/autoload.php';
 // ---------------------------------------------- MUSNAH
 
 if (isset($_POST['but_update'])) {
+     date_default_timezone_set('Asia/Jakarta');
+     $tanggalSekarang = date('Y-m-d H:i:s');
     if (!empty($_POST['chk'])) {
         $selectedIds = $_POST['chk'];
 
         // Ubah status rekam medis menjadi "MUSNAH"
         foreach ($selectedIds as $no_rm) {
-            mysqli_query($koneksi, "UPDATE rm SET status = 'RETENSI' WHERE no_rm = '$no_rm'");
+            mysqli_query($koneksi, "UPDATE rm SET status = 'RETENSI' , tanggal_status = '$tanggalSekarang' WHERE no_rm = '$no_rm'");
         }
 
         // Ambil data untuk PDF
@@ -136,12 +138,14 @@ if (isset($_POST['but_update'])) {
  // Sesuaikan path dengan lokasi autoload.php dari Composer
 
  if (isset($_POST['but_musnah'])) {
+    date_default_timezone_set('Asia/Jakarta');
+    $tanggalSekarang = date('Y-m-d H:i:s');
     if (!empty($_POST['chk'])) {
         $selectedIds = $_POST['chk'];
 
         // Ubah status rekam medis menjadi "MUSNAH"
         foreach ($selectedIds as $no_rm) {
-            mysqli_query($koneksi, "UPDATE rm SET status = 'MUSNAH' WHERE no_rm = '$no_rm'");
+            mysqli_query($koneksi, "UPDATE rm SET status = 'MUSNAH', tanggal_status = '$tanggalSekarang' WHERE no_rm = '$no_rm'");
         }
 
         // Ambil data untuk PDF

@@ -1,6 +1,3 @@
-<?php
-session_start(); // jika belum ada
-?>
 <?php include 'template/header.php'; ?>
 
 <!-- Content Wrapper. Contains page content -->
@@ -31,83 +28,139 @@ session_start(); // jika belum ada
                 </div> -->
             </div>
             <div class="row">
-                <div class="col-md-12">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">Diagram Data</h3>
+                <?php
+                // Database connection
+                $conn = new mysqli("localhost", "u756913646_sistemalih", "JKT48gamers?", "u756913646_sistemalih");
+
+                // Check connection
+                if ($conn->connect_error) {
+                    die("Connection failed: " . $conn->connect_error);
+                }
+
+                // Fetch counts from the database
+                $pasienCount = $conn->query("SELECT COUNT(*) AS count FROM pasien")->fetch_assoc()['count'];
+                $rmAktifCount = $conn->query("SELECT COUNT(DISTINCT a.id_pasien) AS count FROM pasien a JOIN kunjungan b ON a.id_pasien = b.id_pasien WHERE b.tanggal_kunjungan > DATE_SUB(CURDATE(), INTERVAL 2 YEAR)")->fetch_assoc()['count'];
+                $rmInaktifCount = $conn->query("SELECT COUNT(DISTINCT a.id_pasien) AS count 
+                                                FROM pasien a 
+                                                JOIN kunjungan b ON a.id_pasien = b.id_pasien 
+                                                JOIN rm c ON a.id_pasien = c.id_pasien 
+                                                WHERE b.tanggal_kunjungan < DATE_SUB(CURDATE(), INTERVAL 2 YEAR) AND c.status = '-'")->fetch_assoc()['count'];
+                $retensiCount = $conn->query("SELECT COUNT(DISTINCT a.id_pasien) AS count 
+                                              FROM pasien a 
+                                              JOIN kunjungan b ON a.id_pasien = b.id_pasien 
+                                              JOIN rm c ON a.id_pasien = c.id_pasien 
+                                              WHERE b.tanggal_kunjungan < DATE_SUB(CURDATE(), INTERVAL 2 YEAR) AND c.status = 'RETENSI'")->fetch_assoc()['count'];
+                $musnahCount = $conn->query("SELECT COUNT(DISTINCT a.id_pasien) AS count 
+                                              FROM pasien a 
+                                              JOIN kunjungan b ON a.id_pasien = b.id_pasien 
+                                              JOIN rm c ON a.id_pasien = c.id_pasien 
+                                              WHERE b.tanggal_kunjungan < DATE_SUB(CURDATE(), INTERVAL 2 YEAR) AND c.status = 'MUSNAH'")->fetch_assoc()['count'];
+                ?>
+
+                <div class="col-lg-3 col-6">
+                    <div class="card bg-info">
+                        <div class="card-body d-flex justify-content-between align-items-center">
+                            <span><b>Total Pasien</b></span>
+                            <span style="font-size: 1.5rem; font-weight: bold;"><?php echo $pasienCount; ?></span>
                         </div>
-                        <!-- /.card-header -->
-                        <div class="card-body">   
-    
-
-<?php
-// Database connection
-$conn = new mysqli("localhost", "u756913646_sistemalih", "JKT48gamers?", "u756913646_sistemalih");
-
-// Check connection
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
-
-// Fetch counts from the database
-$pasienCount = $conn->query("SELECT COUNT(*) AS count FROM pasien")->fetch_assoc()['count'];
-$rmAktifCount = $conn->query("SELECT COUNT(DISTINCT a.id_pasien) AS count FROM pasien a JOIN kunjungan b ON a.id_pasien = b.id_pasien WHERE b.tanggal_kunjungan > DATE_SUB(CURDATE(), INTERVAL 2 YEAR)")->fetch_assoc()['count'];
-$rmInaktifCount = $conn->query("SELECT COUNT(DISTINCT a.id_pasien) AS count 
-                                FROM pasien a 
-                                JOIN kunjungan b ON a.id_pasien = b.id_pasien 
-                                JOIN rm c ON a.id_pasien = c.id_pasien 
-                                WHERE b.tanggal_kunjungan < DATE_SUB(CURDATE(), INTERVAL 2 YEAR) AND c.status = '-'")->fetch_assoc()['count'];
-$retensiCount = $conn->query("SELECT COUNT(DISTINCT a.id_pasien) AS count 
-                              FROM pasien a 
-                              JOIN kunjungan b ON a.id_pasien = b.id_pasien 
-                              JOIN rm c ON a.id_pasien = c.id_pasien 
-                              WHERE b.tanggal_kunjungan < DATE_SUB(CURDATE(), INTERVAL 2 YEAR) AND c.status = 'RETENSI'")->fetch_assoc()['count'];
-$musnahCount = $conn->query("SELECT COUNT(DISTINCT a.id_pasien) AS count 
-                              FROM pasien a 
-                              JOIN kunjungan b ON a.id_pasien = b.id_pasien 
-                              JOIN rm c ON a.id_pasien = c.id_pasien 
-                              WHERE b.tanggal_kunjungan < DATE_SUB(CURDATE(), INTERVAL 2 YEAR) AND c.status = 'MUSNAH'")->fetch_assoc()['count'];
-?>
-
-<div>
-    <canvas id="myChart"></canvas>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-    const ctx = document.getElementById('myChart').getContext('2d');
-    const myChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: ['Total Pasien', 'RM Aktif', 'RM Inaktif', 'Retensi', 'Musnah'],
-            datasets: [{
-                label: 'Jumlah',
-                data: [<?php echo $pasienCount; ?>, <?php echo $rmAktifCount; ?>, <?php echo $rmInaktifCount; ?>, <?php echo $retensiCount; ?>, <?php echo $musnahCount; ?>],
-                backgroundColor: [
-                    'rgba(75, 192, 192, 0.2)',
-                    'rgba(54, 162, 235, 0.2)',
-                    'rgba(255, 99, 132, 0.2)',
-                    'rgba(153, 102, 255, 0.2)',
-                    'rgba(255, 206, 86, 0.2)'
-                ],
-                borderColor: [
-                    'rgba(75, 192, 192, 1)',
-                    'rgba(54, 162, 235, 1)',
-                    'rgba(255, 99, 132, 1)',
-                    'rgba(153, 102, 255, 1)',
-                    'rgba(255, 206, 86, 1)'
-                ],
-                borderWidth: 1
-            }]
-        },
-        options: {
-            scales: {
-                y: {
-                    beginAtZero: true
+                    </div>
+                </div>
+                <div class="col-lg-3 col-6">
+                    <div class="card bg-success">
+                        <div class="card-body d-flex justify-content-between align-items-center">
+                            <span><b>RM Aktif</b></span>
+                            <span style="font-size: 1.5rem; font-weight: bold;"><?php echo $rmAktifCount; ?></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-6">
+                    <div class="card bg-warning">
+                        <div class="card-body d-flex justify-content-between align-items-center">
+                            <span><b>RM Inaktif</b></span>
+                            <span style="font-size: 1.5rem; font-weight: bold;"><?php echo $rmInaktifCount; ?></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-6">
+                    <div class="card bg-primary">
+                        <div class="card-body d-flex justify-content-between align-items-center">
+                            <span><b>Retensi</b></span>
+                            <span style="font-size: 1.5rem; font-weight: bold;"><?php echo $retensiCount; ?></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-6">
+                    <div class="card bg-danger">
+                        <div class="card-body d-flex justify-content-between align-items-center">
+                            <span><b>Musnah</b></span>
+                            <span style="font-size: 1.5rem; font-weight: bold;"><?php echo $musnahCount; ?></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class="content mt-4">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-12">
+                    <div class="card card-outline card-info">
+                        <div class="card-header">
+                            <h3 class="card-title">Diagram Alir Data Pasien</h3>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="pasienChart" height="100"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const ctx = document.getElementById('pasienChart').getContext('2d');
+        const pasienChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Total Pasien', 'RM Aktif', 'RM Inaktif', 'Retensi', 'Musnah'],
+                datasets: [{
+                    label: 'Jumlah',
+                    data: [
+                        <?php echo $pasienCount; ?>,
+                        <?php echo $rmAktifCount; ?>,
+                        <?php echo $rmInaktifCount; ?>,
+                        <?php echo $retensiCount; ?>,
+                        <?php echo $musnahCount; ?>
+                    ],
+                    backgroundColor: 'rgba(0, 123, 255, 0.2)',
+                    borderColor: 'rgba(0, 123, 255, 1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.3,
+                    pointBackgroundColor: [
+                        'rgba(23, 162, 184, 1)',
+                        'rgba(40, 167, 69, 1)',
+                        'rgba(255, 193, 7, 1)',
+                        'rgba(0, 123, 255, 1)',
+                        'rgba(220, 53, 69, 1)'
+                    ],
+                    pointRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        precision: 0
+                    }
                 }
             }
-        }
-    });
-</script>
+        });
+    </script>
+</div>
 
 <?php include 'template/footer.php'; ?>

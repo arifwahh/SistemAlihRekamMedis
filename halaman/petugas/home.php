@@ -55,6 +55,11 @@
                                               JOIN kunjungan b ON a.id_pasien = b.id_pasien 
                                               JOIN rm c ON a.id_pasien = c.id_pasien 
                                               WHERE b.tanggal_kunjungan < DATE_SUB(CURDATE(), INTERVAL 2 YEAR) AND c.status = 'MUSNAH'")->fetch_assoc()['count'];
+
+                // Tambahan kategori baru
+                $totalRmCount = $conn->query("SELECT COUNT(*) AS count FROM rm")->fetch_assoc()['count'];
+                $totalPenggunaCount = $conn->query("SELECT COUNT(*) AS count FROM pengguna")->fetch_assoc()['count'];
+                $totalBeritaAcaraCount = $conn->query("SELECT COUNT(*) AS count FROM berita_acara")->fetch_assoc()['count'];
                 ?>
 
                 <div class="col-lg-3 col-6">
@@ -97,6 +102,32 @@
                         </div>
                     </div>
                 </div>
+                <!-- Card tambahan -->
+                <div class="col-lg-3 col-6">
+                    <div class="card bg-secondary">
+                        <div class="card-body d-flex justify-content-between align-items-center">
+                            <span><b>Total RM</b></span>
+                            <span style="font-size: 1.5rem; font-weight: bold;"><?php echo $totalRmCount; ?></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-6">
+                    <div class="card bg-teal">
+                        <div class="card-body d-flex justify-content-between align-items-center">
+                            <span><b>Total Pengguna</b></span>
+                            <span style="font-size: 1.5rem; font-weight: bold;"><?php echo $totalPenggunaCount; ?></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-6">
+                    <div class="card" style="background-color: #6f42c1; color: #fff;">
+                        <div class="card-body d-flex justify-content-between align-items-center">
+                            <span><b>Total Berita Acara</b></span>
+                            <span style="font-size: 1.5rem; font-weight: bold;"><?php echo $totalBeritaAcaraCount; ?></span>
+                        </div>
+                    </div>
+                </div>
+                <!-- End Card tambahan -->
             </div>
         </div>
     </section>
@@ -122,7 +153,16 @@
         const pasienChart = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: ['Total Pasien', 'RM Aktif', 'RM Inaktif', 'Retensi', 'Musnah'],
+                labels: [
+                    'Total Pasien',
+                    'RM Aktif',
+                    'RM Inaktif',
+                    'Retensi',
+                    'Musnah',
+                    'Total RM',
+                    'Total Pengguna',
+                    'Total Berita Acara'
+                ],
                 datasets: [{
                     label: 'Jumlah',
                     data: [
@@ -130,10 +170,31 @@
                         <?php echo $rmAktifCount; ?>,
                         <?php echo $rmInaktifCount; ?>,
                         <?php echo $retensiCount; ?>,
-                        <?php echo $musnahCount; ?>
+                        <?php echo $musnahCount; ?>,
+                        <?php echo $totalRmCount; ?>,
+                        <?php echo $totalPenggunaCount; ?>,
+                        <?php echo $totalBeritaAcaraCount; ?>
                     ],
-                    backgroundColor: 'rgba(0, 123, 255, 0.2)',
-                    borderColor: 'rgba(0, 123, 255, 1)',
+                    backgroundColor: [
+                        'rgba(23, 162, 184, 0.2)',
+                        'rgba(40, 167, 69, 0.2)',
+                        'rgba(255, 193, 7, 0.2)',
+                        'rgba(0, 123, 255, 0.2)',
+                        'rgba(220, 53, 69, 0.2)',
+                        'rgba(108, 117, 125, 0.2)',
+                        'rgba(32, 201, 151, 0.2)',
+                        'rgba(248, 249, 250, 0.2)'
+                    ],
+                    borderColor: [
+                        'rgba(23, 162, 184, 1)',
+                        'rgba(40, 167, 69, 1)',
+                        'rgba(255, 193, 7, 1)',
+                        'rgba(0, 123, 255, 1)',
+                        'rgba(220, 53, 69, 1)',
+                        'rgba(108, 117, 125, 1)',
+                        'rgba(32, 201, 151, 1)',
+                        'rgba(248, 249, 250, 1)'
+                    ],
                     borderWidth: 2,
                     fill: true,
                     tension: 0.3,
@@ -142,7 +203,10 @@
                         'rgba(40, 167, 69, 1)',
                         'rgba(255, 193, 7, 1)',
                         'rgba(0, 123, 255, 1)',
-                        'rgba(220, 53, 69, 1)'
+                        'rgba(220, 53, 69, 1)',
+                        'rgba(108, 117, 125, 1)',
+                        'rgba(32, 201, 151, 1)',
+                        'rgba(108, 117, 125, 1)'
                     ],
                     pointRadius: 5
                 }]

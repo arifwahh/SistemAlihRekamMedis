@@ -172,8 +172,92 @@
                                         <td><?php echo htmlspecialchars($d['pj_apoteker_ba']); ?></td>
                                         <td>
                                             <a href="../../proses/beritaacara_cetak.php?id_ba=<?php echo $d['id_ba']; ?>" target="_blank" class="btn btn-success btn-sm ">Cetak PDF</a>
-                                            <a href="beritaacara_edit.php?id_ba=<?php echo $d['id_ba']; ?>" class="btn btn-warning btn-sm">Edit</a>
-                                            <a href="beritaacara_hapus.php?id_ba=<?php echo $d['id_ba']; ?>" class="btn btn-danger btn-sm" onclick="return confirmDelete();">Hapus</a>
+                                            <!-- Tombol Edit: trigger modal -->
+                                            <?php $modal_id = 'modalEditBA_' . preg_replace('/[^A-Za-z0-9_\-]/', '_', $d['id_ba']); ?>
+                                                                                        <button type="button" class="btn btn-warning btn-sm" data-toggle="modal" data-target="#<?php echo $modal_id; ?>">
+                                                                                            Edit
+                                                                                        </button>
+                                            
+                                            <!-- Modal Edit Berita Acara -->
+                                    <div class="modal fade" id="<?php echo $modal_id; ?>" tabindex="-1" role="dialog" aria-labelledby="modalEditBALabel_<?php echo $modal_id; ?>" aria-hidden="true">
+                                        <div class="modal-dialog modal-lg" role="document">
+                                            <form action="../../proses/beritaacara_edit.php" method="POST">
+                                                  <div class="modal-content">
+                                                    <div class="modal-header">
+                                                      <h5 class="modal-title" id="modalEditBALabel_<?php echo $d['id_ba']; ?>">Edit Berita Acara</h5>
+                                                      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                        <span aria-hidden="true">&times;</span>
+                                                      </button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <input type="hidden" name="id_ba" value="<?php echo htmlspecialchars($d['id_ba']); ?>">
+                                                        <div class="form-group">
+                                                            <label for="edit_tanggal_ba_<?php echo $d['id_ba']; ?>">Tanggal Pelaksanaan</label>
+                                                            <input type="datetime-local" class="form-control" id="edit_tanggal_ba_<?php echo $d['id_ba']; ?>" name="tanggal_ba" required value="<?php echo date('Y-m-d\TH:i', strtotime($d['tanggal_ba'])); ?>">
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <label for="edit_judul_ba_<?php echo $d['id_ba']; ?>">Judul</label>
+                                                            <input type="text" class="form-control" id="edit_judul_ba_<?php echo $d['id_ba']; ?>" name="judul_ba" required maxlength="500" value="<?php echo htmlspecialchars($d['judul_ba']); ?>">
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <label for="edit_pj_apoteker_ba_<?php echo $d['id_ba']; ?>">Penanggung Jawab</label>
+                                                            <input type="text" class="form-control" id="edit_pj_apoteker_ba_<?php echo $d['id_ba']; ?>" name="pj_apoteker_ba" required maxlength="50" value="<?php echo htmlspecialchars($d['pj_apoteker_ba']); ?>">
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <label for="edit_pj_nip_ba_<?php echo $d['id_ba']; ?>">NIP Penanggung Jawab</label>
+                                                            <input type="text" class="form-control" id="edit_pj_nip_ba_<?php echo $d['id_ba']; ?>" name="pj_nip_ba" required maxlength="30" value="<?php echo htmlspecialchars($d['pj_nip_ba']); ?>">
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <label for="edit_saksi_ba_<?php echo $d['id_ba']; ?>">Saksi</label>
+                                                            <input type="text" class="form-control" id="edit_saksi_ba_<?php echo $d['id_ba']; ?>" name="saksi_ba" required maxlength="50" value="<?php echo htmlspecialchars($d['saksi_ba']); ?>">
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <label for="edit_saksi_nip_ba_<?php echo $d['id_ba']; ?>">NIP Saksi</label>
+                                                            <input type="text" class="form-control" id="edit_saksi_nip_ba_<?php echo $d['id_ba']; ?>" name="saksi_nip_ba" required maxlength="30" value="<?php echo htmlspecialchars($d['saksi_nip_ba']); ?>">
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <label for="edit_saksi_jabatan_ba_<?php echo $d['id_ba']; ?>">Jabatan Saksi</label>
+                                                            <input type="text" class="form-control" id="edit_saksi_jabatan_ba_<?php echo $d['id_ba']; ?>" name="saksi_jabatan_ba" required maxlength="70" value="<?php echo htmlspecialchars($d['saksi_jabatan_ba']); ?>">
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <label for="edit_tipe_ba_<?php echo $d['id_ba']; ?>">Tipe Berita Acara</label>
+                                                            <select class="form-control" id="edit_tipe_ba_<?php echo $d['id_ba']; ?>" name="tipe_ba" required>
+                                                                <option value="">-- Pilih Tipe --</option>
+                                                                <option value="PEMUSNAHAN" <?php if($d['tipe_ba']=='PEMUSNAHAN') echo 'selected'; ?>>PEMUSNAHAN</option>
+                                                                <option value="RETENSI" <?php if($d['tipe_ba']=='RETENSI') echo 'selected'; ?>>RETENSI</option>
+                                                            </select>
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <label for="edit_periodeawal_ba_<?php echo $d['id_ba']; ?>">Periode Awal</label>
+                                                            <input type="date" class="form-control" id="edit_periodeawal_ba_<?php echo $d['id_ba']; ?>" name="periodeawal_ba" value="<?php echo htmlspecialchars($d['periodeawal_ba']); ?>">
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <label for="edit_periodeakhir_ba_<?php echo $d['id_ba']; ?>">Periode Akhir</label>
+                                                            <input type="date" class="form-control" id="edit_periodeakhir_ba_<?php echo $d['id_ba']; ?>" name="periodeakhir_ba" value="<?php echo htmlspecialchars($d['periodeakhir_ba']); ?>">
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                      <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                                                      <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+                                                    </div>
+                                                  </div>
+                                                </form>
+                                              </div>
+                                            </div>
+                                            <?php
+                                            // Inline delete logic
+                                            if (isset($_GET['delete_id_ba'])) {
+                                                $delete_id_ba = mysqli_real_escape_string($koneksi, $_GET['delete_id_ba']);
+                                                $delete = mysqli_query($koneksi, "DELETE FROM berita_acara WHERE id_ba='$delete_id_ba'");
+                                                if ($delete) {
+                                                    echo "<script>window.location='beritaacara.php';</script>";
+                                                    exit;
+                                                } else {
+                                                    echo "<script>alert('Gagal menghapus data!');</script>";
+                                                }
+                                            }
+                                            ?>
+                                            <a href="beritaacara.php?delete_id_ba=<?php echo urlencode($d['id_ba']); ?>" class="btn btn-danger btn-sm" onclick="return confirmDelete();">Hapus</a>
                                         </td>
                                     </tr>
                                     <?php } ?>

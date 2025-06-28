@@ -21,6 +21,7 @@ if ($result && $row = $result->fetch_assoc()) {
         $hanyatanggal_ba = date('Y-m-d', strtotime($row['tanggal_ba']));
         $tanggalberita = tgl_indo($hanyatanggal_ba);
    // HTML content with precise spacing
+   // style inline untuk menghindari masalah dengan CSS eksternal
 $html = '
 <style>
     .header {

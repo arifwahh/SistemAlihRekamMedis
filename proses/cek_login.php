@@ -9,15 +9,17 @@ include 'koneksi.php';
 $email = $_POST['email'];
 $password = $_POST['password'];
 
-// menyeleksi data user dengan username dan password yang sesuai
-$login = mysqli_query($koneksi,"select * from pengguna where email_pengguna='$email' and password_pengguna='$password'");
-// menghitung jumlah data yang ditemukan
-$cek = mysqli_num_rows($login);
- 
+// Gunakan prepared statement untuk mencegah SQL injection
+$stmt = $koneksi->prepare("SELECT * FROM pengguna WHERE email_pengguna = ?");
+$stmt->bind_param("s", $email);
+$stmt->execute();
+$result = $stmt->get_result();
+$cek = $result->num_rows;
+
 // cek apakah username dan password di temukan pada database
 if($cek > 0){
- 
-	$data = mysqli_fetch_assoc($login);
+
+	$data = $result->fetch_assoc();
 	$nama = $data['nama_pengguna'];
  
 	// cek jika user login sebagai admin
@@ -36,9 +38,12 @@ if($cek > 0){
 	}else if($data['jabatan_pengguna']=="kepala"){
 		// buat session login dan username
 		$_SESSION['email_pengguna'] = $email;
+		$_SESSION['nama_pengguna'] = $nama;
+		$_SESSION['idpengguna'] = $data['id_pengguna'];
 		$_SESSION['jabatan_pengguna'] = "kepala";
+		$_SESSION['status'] = "login";
 		// alihkan ke halaman dashboard pegawai
-		header("location:../halaman/kepalapuskesmas/home.php");
+		header("location:../halaman/kepala/home.php");
  
 	}else{
  

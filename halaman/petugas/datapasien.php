@@ -34,7 +34,7 @@
                 <!-- Modal Import Excel -->
                 <div class="modal fade" id="importExcelModal" tabindex="-1" role="dialog" aria-labelledby="importExcelModalLabel" aria-hidden="true">
                     <div class="modal-dialog" role="document">
-                        <form action="../../proses/importpasien.php" method="post" enctype="multipart/form-data">
+                        <form action="../../proses/importxls.php" method="post" enctype="multipart/form-data">
                             <div class="modal-content">
                                 <div class="modal-header">
                                     <h5 class="modal-title" id="importExcelModalLabel">Import Data Pasien dari Excel</h5>
@@ -63,7 +63,7 @@
                                             <li>No Rekam Medis</li>
                                             <!-- File PDF tidak diimport via excel -->
                                         </ul>
-                                        <a href="../../proses/template_import_pasien.xlsx" class="btn btn-link">Download Template Excel</a>
+                                        <a href="../../assets/template_import_pasien.xlsx" class="btn btn-link">Download Template Excel</a>
                                     </div>
                                     <div class="form-group mt-2">
                                         <label for="file_excel">Pilih File Excel (.xlsx, .xls):</label>

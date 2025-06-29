@@ -219,6 +219,11 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
           $foto_url = $base_url . '/assets/fotopengguna/';
           $foto_found = false;
 
+          echo $foto_nama; // Debugging: tampilkan nama foto yang diambil dari database
+          echo $foto_dir; // Debugging: tampilkan direktori foto yang digunakan
+          echo $foto_url; // Debugging: tampilkan URL foto yang digunakan
+          echo $foto_path; // Debugging: tampilkan path foto yang digunakan
+
           if ($foto_nama !== '') {
               // Cari file dengan nama yang sama (tanpa ekstensi) di folder assets/fotopengguna
               foreach (glob($foto_dir . $foto_nama . '.*') as $file) {

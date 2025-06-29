@@ -223,7 +223,8 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
           echo "Nama foto: " . $foto_nama . "<br>";
           echo "Direktori foto: " . $foto_dir . "<br>";
           echo "Base URL: " . $base_url . "<br>";
-          echo "SERVER :". $SERVER[DOCUMENT_ROOT] . "<br>";
+          $serverasal = $_SERVER['DOCUMENT_ROOT'];
+          echo "SERVER :" . $serverasal . "<br>";
           echo "URL foto: " . $foto_url . "<br>";
           echo "Path foto: " . $foto_path . "<br>";
           

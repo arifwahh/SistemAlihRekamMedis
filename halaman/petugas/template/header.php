@@ -219,6 +219,8 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
           $foto_dir = $serverfoto;
           $foto_url = $base_url . '/assets/fotopengguna/';
           $foto_found = false;
+          
+          echo $foto_dir;
 
           if ($foto_nama !== '') {
               // Cari file dengan nama yang sama (tanpa ekstensi) di folder assets/fotopengguna

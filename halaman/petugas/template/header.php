@@ -215,20 +215,10 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
           $data_foto = mysqli_fetch_assoc($result_foto);
           $foto_nama = !empty($data_foto['foto_pengguna']) ? pathinfo($data_foto['foto_pengguna'], PATHINFO_FILENAME) : '';
           $foto_path = '';
-          $foto_dir = $_SERVER['DOCUMENT_ROOT'] . $base_url . '/assets/fotopengguna/';
+          $serverfoto = $_SERVER['DOCUMENT_ROOT'] . 'assets/fotopengguna/';
+          $foto_dir = $serverfoto;
           $foto_url = $base_url . '/assets/fotopengguna/';
           $foto_found = false;
-
-          echo "==== DEBUG FOTO ====<br>";
-          echo "Nama foto: " . $foto_nama . "<br>";
-          echo "Direktori foto: " . $foto_dir . "<br>";
-          echo "Base URL: " . $base_url . "<br>";
-          $serverasal = $_SERVER['DOCUMENT_ROOT'];
-          echo "SERVER :" . $serverasal . "<br>";
-          echo "URL foto: " . $foto_url . "<br>";
-          echo "Path foto: " . $foto_path . "<br>";
-          
-          echo "====================<br>";
 
           if ($foto_nama !== '') {
               // Cari file dengan nama yang sama (tanpa ekstensi) di folder assets/fotopengguna

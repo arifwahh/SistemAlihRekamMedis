@@ -229,7 +229,7 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
           }
 
           if (!$foto_found) {
-              $foto_path = $base_url . '/assets/fotopengguna/user2-160x160.jpg';
+              $foto_path = $base_url . '/assets/fotopengguna/fotodefault.png';
           }
           ?>
           <img src="<?= htmlspecialchars($foto_path) ?>" class="img-circle elevation-2" alt="User Image">

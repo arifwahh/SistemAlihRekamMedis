@@ -222,8 +222,11 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
           echo "==== DEBUG FOTO ====<br>";
           echo "Nama foto: " . $foto_nama . "<br>";
           echo "Direktori foto: " . $foto_dir . "<br>";
+          echo "Base URL: " . $base_url . "<br>";
+          echo "SERVER :". $SERVER[DOCUMENT_ROOT] . "<br>";
           echo "URL foto: " . $foto_url . "<br>";
           echo "Path foto: " . $foto_path . "<br>";
+          
           echo "====================<br>";
 
           if ($foto_nama !== '') {

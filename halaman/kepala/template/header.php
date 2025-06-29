@@ -215,9 +215,11 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
           $data_foto = mysqli_fetch_assoc($result_foto);
           $foto_nama = !empty($data_foto['foto_pengguna']) ? pathinfo($data_foto['foto_pengguna'], PATHINFO_FILENAME) : '';
           $foto_path = '';
-          $foto_dir = $_SERVER['DOCUMENT_ROOT'] . $base_url . '/assets/fotopengguna/';
+          $serverfoto = $_SERVER['DOCUMENT_ROOT'] . '/assets/fotopengguna/';
+          $foto_dir = $serverfoto;
           $foto_url = $base_url . '/assets/fotopengguna/';
           $foto_found = false;
+          
 
           if ($foto_nama !== '') {
               // Cari file dengan nama yang sama (tanpa ekstensi) di folder assets/fotopengguna
@@ -229,7 +231,7 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
           }
 
           if (!$foto_found) {
-              $foto_path = $base_url . '/assets/fotopengguna/fotodefault.png'; // Ganti dengan path foto default jika tidak ditemukan
+              $foto_path = $base_url . '/assets/fotopengguna/fotodefault.png';
           }
           ?>
           <img src="<?= htmlspecialchars($foto_path) ?>" class="img-circle elevation-2" alt="User Image">
@@ -252,6 +254,151 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
                 <span class="right badge badge-danger">New</span>
               </p>
             </a>
+          </li>
+          <li class="nav-item">
+            <a href="#" class="nav-link">
+              <i class="nav-icon fas fa-user"></i>
+              <p>
+                MASTER DATA
+                <i class="fas fa-angle-left right"></i>
+                <span class="badge badge-info right">6</span>
+              </p>
+            </a>
+            <ul class="nav nav-treeview">
+              <li class="nav-item">
+                <a href="datapengguna.php" class="nav-link">
+                  <i class="far fa-circle nav-icon"></i>
+                  <p>Data Pengguna</p>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a href="datapasien.php" class="nav-link">
+                  <i class="far fa-circle nav-icon"></i>
+                  <p>Pasien dan Kunjungan</p>
+                </a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-item">
+            <a href="#" class="nav-link">
+              <i class="nav-icon fas fa-folder"></i>
+              <p>
+                REKAM MEDIS
+                <i class="right fas fa-angle-left"></i>
+              </p>
+            </a>
+            <ul class="nav nav-treeview">
+              <li class="nav-item">
+                <a href="rmaktif.php" class="nav-link">
+                  <i class="far fa-circle nav-icon"></i>
+                  <p>
+                          RM Active
+                          <?php 
+                          $koneksi = mysqli_connect("localhost", "u756913646_sistemalih", "JKT48gamers?", "u756913646_sistemalih");
+
+                          if (mysqli_connect_errno()) {
+                              echo "Koneksi database gagal: " . mysqli_connect_error();
+                          }
+
+                          $query = "SELECT COUNT(*) AS total 
+              FROM (
+                  SELECT a.id_pasien
+                  FROM pasien a
+                  INNER JOIN kunjungan b ON a.id_pasien = b.id_pasien
+                  INNER JOIN rm c ON a.id_pasien = c.id_pasien
+                  WHERE c.status = '-'
+                  GROUP BY a.id_pasien
+                  HAVING MAX(b.tanggal_kunjungan) >= DATE_SUB(CURDATE(), INTERVAL 2 YEAR)
+              ) AS pasien_lama;
+              ";
+
+                          $result = mysqli_query($koneksi, $query);
+                          $data = mysqli_fetch_assoc($result);
+                          $totalInactive = $data['total'];
+                          ?>
+
+                          <span class="right badge badge-danger"><?php echo $totalInactive; ?></span>
+                      </p>
+                </a>
+              </li>
+                <li class="nav-item">
+                  <a href="rminaktif.php" class="nav-link">
+                      <i class="far fa-circle nav-icon"></i>
+                      <p>
+                          RM In-Active
+                          <?php 
+                          $koneksi = mysqli_connect("localhost", "u756913646_sistemalih", "JKT48gamers?", "u756913646_sistemalih");
+
+                          if (mysqli_connect_errno()) {
+                              echo "Koneksi database gagal: " . mysqli_connect_error();
+                          }
+
+                          $query = "SELECT COUNT(*) AS total 
+              FROM (
+                  SELECT a.id_pasien
+                  FROM pasien a
+                  INNER JOIN kunjungan b ON a.id_pasien = b.id_pasien
+                  INNER JOIN rm c ON a.id_pasien = c.id_pasien
+                  WHERE c.status = '-'
+                  GROUP BY a.id_pasien
+                  HAVING MAX(b.tanggal_kunjungan) < DATE_SUB(CURDATE(), INTERVAL 2 YEAR)
+              ) AS pasien_lama;
+              ";
+
+                          $result = mysqli_query($koneksi, $query);
+                          $data = mysqli_fetch_assoc($result);
+                          $totalInactive = $data['total'];
+                          ?>
+
+                          <span class="right badge badge-danger"><?php echo $totalInactive; ?></span>
+                      </p>
+                  </a>
+              </li>
+              <li class="nav-item">
+                <a href="rmretensi.php" class="nav-link">
+                  <i class="far fa-circle nav-icon"></i>
+                  <p>
+                Retensi
+                <?php
+                // Koneksi database (gunakan variabel $koneksi jika sudah ada)
+                if (!isset($koneksi)) {
+                  $koneksi = mysqli_connect("localhost", "u756913646_sistemalih", "JKT48gamers?", "u756913646_sistemalih");
+                  if (mysqli_connect_errno()) {
+                    echo "Koneksi database gagal: " . mysqli_connect_error();
+                  }
+                }
+                $query_musnah = "SELECT COUNT(*) AS total FROM rm WHERE status = 'RETENSI'";
+                $result_musnah = mysqli_query($koneksi, $query_musnah);
+                $data_musnah = mysqli_fetch_assoc($result_musnah);
+                $totalMusnah = $data_musnah['total'];
+                ?>
+                <span class="right badge badge-danger"><?php echo $totalMusnah; ?></span>
+              </p>
+                </a>
+              </li>
+                  <li class="nav-item">
+                <a href="rmmusnah.php" class="nav-link">
+                   <i class="far fa-circle nav-icon"></i>
+                  <p>
+                    Telah Musnah
+                    <?php
+                    // Koneksi database (gunakan variabel $koneksi jika sudah ada)
+                    if (!isset($koneksi)) {
+                      $koneksi = mysqli_connect("localhost", "u756913646_sistemalih", "JKT48gamers?", "u756913646_sistemalih");
+                      if (mysqli_connect_errno()) {
+                        echo "Koneksi database gagal: " . mysqli_connect_error();
+                      }
+                    }
+                    $query_musnah = "SELECT COUNT(*) AS total FROM rm WHERE status = 'MUSNAH'";
+                    $result_musnah = mysqli_query($koneksi, $query_musnah);
+                    $data_musnah = mysqli_fetch_assoc($result_musnah);
+                    $totalMusnah = $data_musnah['total'];
+                    ?>
+                    <span class="right badge badge-danger"><?php echo $totalMusnah; ?></span>
+                  </p>
+                </a>
+              </li>
+            </ul>
           </li>
           <li class="nav-item">
             <a href="beritaacara.php" class="nav-link">

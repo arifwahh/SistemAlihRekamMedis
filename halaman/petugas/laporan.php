@@ -59,6 +59,45 @@
                 </div>
             </div>
         </div>
+        <!-- Card 3: Laporan Rekam Medis Aktif -->
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    Laporan Rekam Medis Aktif
+                </div>
+                <div class="card-body">
+                    <form action="../../proses/generate_laporan_aktif.php" method="get" target="_blank">
+                        <button type="submit" class="btn btn-success">Generate</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <!-- Card 4: Laporan Rekam Medis Inaktif -->
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-header bg-warning text-white">
+                    Laporan Rekam Medis Inaktif
+                </div>
+                <div class="card-body">
+                    <form action="../../proses/generate_laporan_inaktif.php" method="get" target="_blank">
+                        <button type="submit" class="btn btn-warning text-white">Generate</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <!-- Card 5: Laporan Berita Acara -->
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-header bg-secondary text-white">
+                    Laporan Berita Acara
+                </div>
+                <div class="card-body">
+                    <form action="../../proses/generate_laporan_berita_acara.php" method="get" target="_blank">
+                        <button type="submit" class="btn btn-secondary">Generate</button>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 </div>

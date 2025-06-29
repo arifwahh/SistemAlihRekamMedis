@@ -67,14 +67,14 @@ if (isset($_FILES['file_excel']) && $_FILES['file_excel']['error'] == 0) {
             if ($tgl != '') {
                 mysqli_query($koneksi, "INSERT INTO kunjungan (id_kunjungan, id_pasien, tanggal_kunjungan, keluhan_kunjungan, poli_kunjungan, klinik_kunjungan, biaya_kunjungan, no_bpjs_kunjungan) VALUES ('', '$id_pasien', '$tgl', '$diag', '$pol', '$klin', '$by', '$nbpjs')");
                 $id_kunjungan = mysqli_insert_id($koneksi);
-
-                // Insert ke rm (tanpa file PDF)
+            }
+        
+        }
+        // Insert ke rm (tanpa file PDF)
                 $idpengguna = $_SESSION['idpengguna'] ?? 0;
                 date_default_timezone_set('Asia/Jakarta');
                 $tanggalSekarang = date('Y-m-d H:i:s');
                 mysqli_query($koneksi, "INSERT INTO rm VALUES ('', '$norm', '$id_pasien', '$idpengguna', '$id_kunjungan', '-', '', '$tanggalSekarang', '-')");
-            }
-        }
     }
     header("Location: ../halaman/petugas/datapasien.php");
     exit();

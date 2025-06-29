@@ -45,7 +45,7 @@ $update_fields[] = "nama_pengguna='" . mysqli_real_escape_string($koneksi, $nama
 $update_fields[] = "jabatan_pengguna='" . mysqli_real_escape_string($koneksi, $jabatan_pengguna) . "'";
 
 if (!empty($password_pengguna)) {
-    $password_hash = password_hash($password_pengguna, PASSWORD_DEFAULT);
+    $password_hash = $password_pengguna;
     $update_fields[] = "password_pengguna='" . mysqli_real_escape_string($koneksi, $password_hash) . "'";
 }
 

@@ -9,17 +9,15 @@ include 'koneksi.php';
 $email = $_POST['email'];
 $password = $_POST['password'];
 
-// Gunakan prepared statement untuk mencegah SQL injection
-$stmt = $koneksi->prepare("SELECT * FROM pengguna WHERE email_pengguna = ?");
-$stmt->bind_param("s", $email);
-$stmt->execute();
-$result = $stmt->get_result();
-$cek = $result->num_rows;
-
+// menyeleksi data user dengan username dan password yang sesuai
+$login = mysqli_query($koneksi,"select * from pengguna where email_pengguna='$email' and password_pengguna='$password'");
+// menghitung jumlah data yang ditemukan
+$cek = mysqli_num_rows($login);
+ 
 // cek apakah username dan password di temukan pada database
 if($cek > 0){
-
-	$data = $result->fetch_assoc();
+ 
+	$data = mysqli_fetch_assoc($login);
 	$nama = $data['nama_pengguna'];
  
 	// cek jika user login sebagai admin

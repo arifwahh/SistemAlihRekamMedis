@@ -123,7 +123,14 @@
                                         <td> <a href="#" data-toggle="modal" data-target="#edit<?php echo $idpasien ?>"> <?php echo tgl_indo(date($tampilkunjungan['knj'])); }?></a></td>
                                         <td>
                                             <span class="right badge badge-danger">MUSNAH</span>
-                                            <?php if (!empty($linkrm)) { ?>
+                                            <?php
+                                            // Ambil data halaman dari tabel rm kolom halaman_rm
+                                            $halaman_query = mysqli_query($koneksi, "SELECT halaman_rm FROM rm WHERE no_rm = '$rekamid' LIMIT 1");
+                                            $halaman_data = mysqli_fetch_assoc($halaman_query);
+                                            $halaman_str = isset($halaman_data['halaman_rm']) ? trim($halaman_data['halaman_rm']) : '1';
+
+                                            // Tampilkan icon hanya jika $linkrm tidak kosong DAN $halaman_str bukan "-"
+                                            if (!empty($linkrm) && $halaman_str !== "-") { ?>
                                                 <a href="#" data-toggle="modal" data-target="#fileModal<?php echo $idpasien; ?>" title="Lihat File RM">
                                                     <i class="fa fa-folder-open text-primary ml-2"></i>
                                                 </a>
@@ -138,7 +145,68 @@
                                                         </button>
                                                       </div>
                                                       <div class="modal-body">
-                                                        <embed src="../../file/<?php echo htmlspecialchars($linkrm); ?>" type="application/pdf" width="100%" height="600px" />
+                                                        <?php
+                                                        // Parsing halaman: bisa "1-2", "2", "1,2"
+                                                        $halaman_arr = [];
+                                                        if (strpos($halaman_str, '-') !== false) {
+                                                            // Format rentang, misal "1-3"
+                                                            list($start, $end) = explode('-', $halaman_str, 2);
+                                                            $start = (int)trim($start);
+                                                            $end = (int)trim($end);
+                                                            if ($start > 0 && $end >= $start) {
+                                                                $halaman_arr = range($start, $end);
+                                                            }
+                                                        } elseif (strpos($halaman_str, ',') !== false) {
+                                                            // Format list, misal "1,3,5"
+                                                            $halaman_arr = array_map('intval', array_map('trim', explode(',', $halaman_str)));
+                                                        } else {
+                                                            // Satu halaman saja
+                                                            $num = (int)$halaman_str;
+                                                            if ($num > 0) $halaman_arr[] = $num;
+                                                        }
+                                                        if (empty($halaman_arr)) $halaman_arr[] = 1; // fallback
+
+                                                        ?>
+                                                        <div id="pdf-viewer-<?php echo $idpasien; ?>" style="width:100%; height:600px; border:1px solid #ccc; overflow:auto;"></div>
+                                                        <p>Menampilkan halaman ke-<?php echo htmlspecialchars($halaman_str); ?> dari file rekam medis.</p>
+                                                        <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+                                                        <script>
+                                                        (function() {
+                                                            var url = "../<?php echo $linkrm ? htmlspecialchars($linkrm, ENT_QUOTES) : ''; ?>";
+                                                            var halamanArr = <?php echo json_encode($halaman_arr); ?>;
+                                                            var containerId = "pdf-viewer-<?php echo $idpasien; ?>";
+                                                            var container = document.getElementById(containerId);
+                                                            container.innerHTML = "";
+
+                                                            pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js";
+                                                            pdfjsLib.getDocument(url).promise.then(function(pdf) {
+                                                                var validPages = halamanArr.filter(function(pageNum) {
+                                                                    return pageNum >= 1 && pageNum <= pdf.numPages;
+                                                                });
+                                                                if (validPages.length === 0) validPages = [1];
+                                                                // Render setiap halaman yang diminta
+                                                                validPages.forEach(function(pageNumber) {
+                                                                    pdf.getPage(pageNumber).then(function(page) {
+                                                                        var viewport = page.getViewport({scale: 1.5});
+                                                                        var canvas = document.createElement('canvas');
+                                                                        var context = canvas.getContext('2d');
+                                                                        canvas.height = viewport.height;
+                                                                        canvas.width = viewport.width;
+                                                                        canvas.style.marginBottom = "20px";
+                                                                        container.appendChild(canvas);
+
+                                                                        var renderContext = {
+                                                                            canvasContext: context,
+                                                                            viewport: viewport
+                                                                        };
+                                                                        page.render(renderContext);
+                                                                    });
+                                                                });
+                                                            }).catch(function(error) {
+                                                                container.innerHTML = "<div style='color:red;'>File PDF tidak ditemukan atau rusak.</div>";
+                                                            });
+                                                        })();
+                                                        </script>
                                                       </div>
                                                     </div>
                                                   </div>

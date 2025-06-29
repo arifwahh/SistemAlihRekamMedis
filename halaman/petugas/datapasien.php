@@ -755,7 +755,7 @@
                                                         <div class="form-group">
                                                             <label>No Rekam Medis</label>
                                                             <input type="number" name="norm"
-                                                                placeholder="Nomor Rekam Medis" class="form-control">
+                                                                placeholder="Nomor Rekam Medis" class="form-control" required>
                                                         </div>
                                                     </div>
                                                     <div class="form-group">
@@ -763,6 +763,38 @@
                                                         <input type="file" name="nama_file_pdf" id="nama_file_pdf"
                                                             accept="application/pdf">
                                                     </div>
+                                                    <div class="form-group">
+                                                        <div class="form-check">
+                                                            <input type="checkbox" class="form-check-input" id="halamanDisimpanCheckbox" name="halaman_disimpan">
+                                                            <label class="form-check-label" for="halamanDisimpanCheckbox">
+                                                                Apakah ada halaman yang mau disimpan? <br>
+                                                                <small class="text-muted">note : halaman yang disimpan akan tetap ada walau rekam medis dimusnahkan <p> jika tidak ada yang disimpan, bisa check lalu tulis - pada formnya</small>
+                                                            </label>
+                                                        </div>
+                                                        <div id="inputNoHalamanDisimpan" style="display:none; margin-top:10px;">
+                                                            <label for="no_halaman_disimpan">Masukan no halaman yang disimpan</label>
+                                                            <input type="text" class="form-control" name="no_halaman_disimpan" id="no_halaman_disimpan" placeholder="Contoh: 1, 2, 5-7">
+                                                        </div>
+                                                    </div>
+                                                    <script>
+                                                    document.addEventListener('DOMContentLoaded', function() {
+                                                        var checkbox = document.getElementById('halamanDisimpanCheckbox');
+                                                        var inputBox = document.getElementById('inputNoHalamanDisimpan');
+                                                        var inputHalaman = document.getElementById('no_halaman_disimpan');
+                                                        checkbox.addEventListener('change', function() {
+                                                            if (checkbox.checked) {
+                                                                inputBox.style.display = 'block';
+                                                                // inputHalaman.required = true; // Tidak required
+                                                            } else {
+                                                                inputBox.style.display = 'none';
+                                                                inputHalaman.value = '';
+                                                                // inputHalaman.required = false; // Tidak required
+                                                            }
+                                                        });
+                                                        // Pastikan input tidak required saat load
+                                                        // inputHalaman.required = false;
+                                                    });
+                                                    </script>
                                                     <div class="f1-buttons">
                                                         <button type="button" class="btn btn-warning btn-previous"><i
                                                                 class="fa fa-arrow-left"></i> Sebelumnya</button>

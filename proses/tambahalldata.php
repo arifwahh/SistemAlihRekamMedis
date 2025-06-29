@@ -11,7 +11,8 @@ $pekerjaan_pasien = $_POST['pekerjaanpasien'];
 $tanggallahir_pasien = $_POST['tanggallahirpasien'];
 $agama_pasien = $_POST['agamapasien'];
 $alamat_pasien = $_POST['alamatpasien'];
-
+$halaman_disimpan = isset($_POST['halaman_disimpan']) ? 1 : 0;
+$no_halaman_disimpan = isset($_POST['no_halaman_disimpan']) && $_POST['no_halaman_disimpan'] !== '' ? $_POST['no_halaman_disimpan'] : '-';
 // //menangkap data kunjungan
 $number = count($_POST["keluhankunjungan"]);
 
@@ -51,7 +52,7 @@ if($number > 0)
       $terupload = move_uploaded_file($file_tmp, $linkBerkas);
       date_default_timezone_set('Asia/Jakarta');
       $tanggalSekarang = date('Y-m-d H:i:s');
-      $addrm = mysqli_query($koneksi,"INSERT INTO rm VALUES ('','$norm','$idpasien','$idpengguna','$idkunjungan','-','$linkBerkas','$tanggalSekarang')");
+      $addrm = mysqli_query($koneksi,"INSERT INTO rm VALUES ('','$norm','$idpasien','$idpengguna','$idkunjungan','-','$linkBerkas','$tanggalSekarang','$no_halaman_disimpan')");
       if ($terupload && $addrm == 1) {
           header("Location: ../halaman/petugas/datapasien.php", true, 301);
           exit();

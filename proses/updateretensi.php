@@ -98,8 +98,8 @@ if (isset($_POST['but_update'])) {
                 $mail->isSMTP();
                 $mail->Host       = 'smtp.gmail.com'; // Sesuaikan dengan SMTP server
                 $mail->SMTPAuth   = true;
-                $mail->Username   = 'arifwahh@gmail.com'; // Ganti dengan email pengirim
-                $mail->Password   = 'fksw bzqg yank xmtc'; // Ganti dengan password email
+                $mail->Username   = ''; // Ganti dengan email pengirim
+                $mail->Password   = ''; // Ganti dengan password email
                 $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
                 $mail->Port       = 587;
 
@@ -208,8 +208,8 @@ if (isset($_POST['but_update'])) {
                 $mail->isSMTP();
                 $mail->Host       = 'smtp.gmail.com'; // Sesuaikan dengan SMTP server
                 $mail->SMTPAuth   = true;
-                $mail->Username   = 'arifwahh@gmail.com'; // Ganti dengan email pengirim
-                $mail->Password   = 'fksw bzqg yank xmtc'; // Ganti dengan password email
+                $mail->Username   = ''; // Ganti dengan email pengirim
+                $mail->Password   = ''; // Ganti dengan password email
                 $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
                 $mail->Port       = 587;
 

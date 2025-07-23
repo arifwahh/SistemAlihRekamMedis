@@ -95,7 +95,7 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
         <div class="image">
           <?php
           // Ambil nama file foto (tanpa ekstensi) dari database berdasarkan session pengguna
-          $koneksi = mysqli_connect("localhost", "u756913646_sistemalih", "SistemAlih123", "u756913646_sistemalih");
+          $koneksi = mysqli_connect("localhost", "u756913646_sistemalih", "JKT48gamers?", "u756913646_sistemalih");
           if (mysqli_connect_errno()) {
             echo "Koneksi database gagal: " . mysqli_connect_error();
           }
@@ -153,7 +153,7 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
                 <?php
                 // Koneksi database (gunakan variabel $koneksi jika sudah ada)
                 if (!isset($koneksi)) {
-                  $koneksi = mysqli_connect("localhost", "u756913646_sistemalih", "SistemAlih123", "u756913646_sistemalih");
+                  $koneksi = mysqli_connect("localhost", "u756913646_sistemalih", "JKT48gamers?", "u756913646_sistemalih");
                   if (mysqli_connect_errno()) {
                     echo "Koneksi database gagal: " . mysqli_connect_error();
                   }

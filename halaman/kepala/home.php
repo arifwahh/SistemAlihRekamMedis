@@ -29,7 +29,7 @@
             <div class="row">
                 <?php
                 // Database connection
-                $conn = new mysqli("localhost", "u756913646_sistemalih", "SistemAlih123", "u756913646_sistemalih");
+                $conn = new mysqli("localhost", "u756913646_sistemalih", "JKT48gamers?", "u756913646_sistemalih");
 
                 // Check connection
                 if ($conn->connect_error) {

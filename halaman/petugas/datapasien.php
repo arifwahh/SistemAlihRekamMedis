@@ -116,6 +116,7 @@
                 <th>Tanggal Lahir</th>
                 <th>Gender</th>
                 <th>Alamat</th>
+                <th>Status</th>
                 <th>Aksi</th>
             </tr>
         </thead>
@@ -168,34 +169,71 @@
             $data = mysqli_query($koneksi, $sql);
             $no = $offset + 1;
 
-            while ($d = mysqli_fetch_array($data)) { ?>
+            while ($d = mysqli_fetch_array($data)) { 
+                $idpasien = $d['id_pasien'];
+                
+                // PERBAIKAN: Inisialisasi variabel sebelum digunakan
+                $rekamid = '';
+                $linkrm = '';
+                
+                // Query untuk mendapatkan data rekam medis
+                $rekam = mysqli_query($koneksi, "SELECT * FROM rm WHERE id_pasien = '$idpasien'");
+                
+                // PERBAIKAN: Cek apakah ada data rekam medis
+                if (mysqli_num_rows($rekam) > 0) {
+                    $tampilrekam = mysqli_fetch_array($rekam);
+                    // PERBAIKAN: Cek apakah array key ada sebelum mengakses
+                    $rekamid = isset($tampilrekam['no_rm']) ? $tampilrekam['no_rm'] : '';
+                    $linkrm = isset($tampilrekam['file_rm']) ? $tampilrekam['file_rm'] : '';
+                }
+            ?>
                 <tr>
                     <td><?php echo $no++; ?></td>
-                    <td>
-                        <?php 
-                        $idpasien = $d['id_pasien'];
-                        $rekam = mysqli_query($koneksi, "SELECT * FROM rm WHERE id_pasien = '$idpasien'");
-                        $rekamid = '';
-                        $linkrm = '';
-                        while ($tampilrekam = mysqli_fetch_array($rekam)) {
-                            $rekamid = $tampilrekam['no_rm'];
-                            $linkrm = $tampilrekam['file_rm'];
-                            echo $rekamid; 
-                        }
-                        ?>
-                    </td>
+                    <td><?php echo $rekamid; ?></td>
                     <td><?php echo $d['nik_pasien']; ?></td>
                     <td><?php echo $d['nama_pasien']; ?></td>
                     <td><?php echo tgl_indo(date($d['tanggal_lahir_pasien'])); ?></td>
                     <td><?php echo $d['jenis_kelamin_pasien']; ?></td>
                     <td><?php echo $d['alamat_pasien']; ?></td>
+                    <td><?php
+                        $rm_check = mysqli_query($koneksi, "SELECT * FROM rm WHERE id_pasien = '$idpasien'");
+                        if (mysqli_num_rows($rm_check) > 0) {
+                            $rm_data = mysqli_fetch_assoc($rm_check);
+                            if ($rm_data['status'] == 'MUSNAH') {
+                                echo "<span class='badge badge-danger'>MUSNAH</span>";
+                            } 
+                            else if ($rm_data['status'] == 'RETENSI') {
+                                echo "<span class='badge badge-warning'>RETENSI</span>";
+                            }
+                            else if ($rm_data['status'] == '-'){
+                                $kunjungan = mysqli_query($koneksi, "select MAX(tanggal_kunjungan) as knj from kunjungan where id_pasien = '$idpasien'");
+                                        while ($tampilkunjungan = mysqli_fetch_array($kunjungan)) { 
+                                            $tanggalKunjungan = $tampilkunjungan['knj'];
+                                            $tanggalSekarang = date('Y-m-d');
+                                            $datetime1 = new DateTime($tanggalKunjungan);
+                                            $datetime2 = new DateTime($tanggalSekarang);
+                                            $interval = $datetime1->diff($datetime2);
+                                            $differenceInDays = $interval->days;
+                                            if ($differenceInDays > 730) {
+                                                echo "<span class='badge badge-danger'>INAKTIF</span>";
+                                            } else {
+                                                echo "<span class='badge badge-success'>AKTIF</span>";
+                                            }
+                                        }
+                            }
+                        }
+                        else {
+                            echo "<span class='badge badge-warning'>Belum Memiliki Rekam Medis</span>";
+                        }
+                    ?></td> 
                     <td>
-                        <a class="far fa-folder" data-toggle="modal" data-target="#mm<?=$rekamid;?>"></a>&nbsp;
+                        <?php if (!empty($rekamid)): ?>
+                            <a class="far fa-folder" data-toggle="modal" data-target="#mm<?=$rekamid;?>"></a>&nbsp;
+                        <?php endif; ?>
                         <a class="far fa-edit" data-toggle="modal" data-target="#edit<?=$idpasien;?>"></a>&nbsp;
-                         <a class="fas fa-trash" onclick="return confirm('Yakin Hapus?')" href="../../proses/hapuspasien.php?id=<?php echo $idpasien; ?>"></a>
+                        <a class="fas fa-trash" onclick="return confirm('Yakin Hapus?')" href="../../proses/hapuspasien.php?id=<?php echo $idpasien; ?>"></a>
 
-
-                        <!-- Modal Edit Pasien -->
+                       <!-- Modal Edit Pasien -->
 <div class="modal fade" id="edit<?= $idpasien; ?>" tabindex="-1" role="dialog" aria-labelledby="editPasienLabel<?= $idpasien; ?>" aria-hidden="true">
     <div class="modal-dialog modal-xl" role="document">
         <form action="../../proses/update_pasienall.php" method="post" enctype="multipart/form-data">
@@ -268,6 +306,12 @@
                                         <input type="text" name="agama_pasien" class="form-control" value="<?= htmlspecialchars($d['agama_pasien']); ?>">
                                     </div>
                                     <div class="form-group">
+                                        <label>No BPJS</label>
+                                        <input type="text" name="nobpjs_pasien" id="nobpjs_pasien_<?= $idpasien; ?>" class="form-control nobpjs-pasien" 
+                                               value="<?= htmlspecialchars($d['no_bpjs_pasien'] ?? ''); ?>" 
+                                               placeholder="No BPJS (Kosongi jika Umum)">
+                                    </div>
+                                    <div class="form-group">
                                         <label>Alamat</label>
                                         <textarea name="alamat_pasien" class="form-control"><?= htmlspecialchars($d['alamat_pasien']); ?></textarea>
                                     </div>
@@ -301,107 +345,33 @@
                                                 while ($row = mysqli_fetch_assoc($kunjungan)): ?>
                                                 <tr>
                                                     <td>
-                                                        <input type="hidden" name="id_kunjungan[]" value="<?= $row['id_kunjungan']; ?>">
-                                                        <input type="date" name="tanggalkunjungan[]" class="form-control" value="<?= htmlspecialchars($row['tanggal_kunjungan']); ?>" required>
+                                                        <input type="hidden" name="id_kunjungan[]" value="<?= $row['id_kunjungan']; ?>" readonly>
+                                                        <input type="date" name="tanggalkunjungan[]" class="form-control" value="<?= htmlspecialchars($row['tanggal_kunjungan']); ?>" required readonly>
                                                     </td>
                                                     <td>
-                                                        <input type="text" name="keluhankunjungan[]" class="form-control" value="<?= htmlspecialchars($row['keluhan_kunjungan']); ?>" required>
+                                                        <input type="text" name="keluhankunjungan[]" class="form-control" value="<?= htmlspecialchars($row['keluhan_kunjungan']); ?>" required readonly>
                                                     </td>
                                                     <td>
-                                                        <input type="text" name="polikunjungan[]" class="form-control" value="<?= htmlspecialchars($row['poli_kunjungan']); ?>">
+                                                        <input type="text" name="polikunjungan[]" class="form-control" value="<?= htmlspecialchars($row['poli_kunjungan']); ?>" readonly>
                                                     </td>
                                                     <td>
-                                                        <input type="text" name="klinikkunjungan[]" class="form-control" value="<?= htmlspecialchars($row['klinik_kunjungan']); ?>">
+                                                        <input type="text" name="klinikkunjungan[]" class="form-control" value="<?= htmlspecialchars($row['klinik_kunjungan']); ?>" readonly>
                                                     </td>
                                                     <td>
-                                                        <select name="biaya[]" class="form-control">
+                                                        <select name="biaya[]" class="form-control biaya-select-edit" disabled>
                                                             <option value="BPJS" <?= ($row['biaya_kunjungan'] == 'BPJS') ? 'selected' : ''; ?>>BPJS</option>
                                                             <option value="Umum" <?= ($row['biaya_kunjungan'] == 'Umum') ? 'selected' : ''; ?>>Umum</option>
                                                         </select>
                                                     </td>
                                                     <td>
-                                                        <input type="text" name="nobpjs[]" class="form-control" value="<?= htmlspecialchars($row['no_bpjs_kunjungan']); ?>">
+                                                        <input type="text" name="nobpjs[]" class="form-control nobpjs-kunjungan-edit" value="<?= htmlspecialchars($row['no_bpjs_kunjungan']); ?>" readonly>
                                                     </td>
-                                                    <td>
+                                                   <td>
                                                         <?php if (!empty($row['id_kunjungan'])): ?>
-                                                            <button type="button" class="btn btn-danger btn-remove-row" onclick="hapusKunjungan('<?= $row['id_kunjungan']; ?>', this)">Hapus</button>
+                                                            <button type="button" class="btn btn-danger btn-remove-row" onclick="hapusKunjungan('<?= $row['id_kunjungan']; ?>', this)" disabled>Hapus</button>
                                                         <?php else: ?>
-                                                            <button type="button" class="btn btn-danger btn-remove-row" onclick="removeRow(this)">Hapus</button>
+                                                            <button type="button" class="btn btn-danger btn-remove-row" onclick="removeRow(this)" disabled>Hapus</button>
                                                         <?php endif; ?>
-                                                        <?php
-                                                        // Proses hapus kunjungan AJAX
-                                                        if (isset($_GET['hapus_kunjungan_ajax']) && isset($_GET['id_kunjungan'])) {
-                                                            include_once '../../proses/koneksi.php';
-                                                            $id_kunjungan = intval($_GET['id_kunjungan']);
-                                                            $query = mysqli_query($koneksi, "SELECT id_pasien FROM kunjungan WHERE id_kunjungan = '$id_kunjungan'");
-                                                            if (!$query || mysqli_num_rows($query) == 0) {
-                                                                echo 'ERROR: Kunjungan tidak ditemukan';
-                                                                exit;
-                                                            }
-                                                            $data = mysqli_fetch_assoc($query);
-                                                            $id_pasien = $data['id_pasien'];
-                                                            mysqli_begin_transaction($koneksi);
-                                                            try {
-                                                                $check_rm_reference = mysqli_query($koneksi, "SELECT rm_id FROM rm WHERE id_kunjungan_terakhir = '$id_kunjungan'");
-                                                                $hapus = mysqli_query($koneksi, "DELETE FROM kunjungan WHERE id_kunjungan = '$id_kunjungan'");
-                                                                if (!$hapus) throw new Exception("Gagal menghapus kunjungan");
-                                                                if (mysqli_num_rows($check_rm_reference) > 0) {
-                                                                    $query_kunjungan_terakhir = mysqli_query($koneksi, "SELECT id_kunjungan FROM kunjungan WHERE id_pasien = '$id_pasien' ORDER BY tanggal_kunjungan DESC, id_kunjungan DESC LIMIT 1");
-                                                                    $id_kunjungan_terakhir = null;
-                                                                    if (mysqli_num_rows($query_kunjungan_terakhir) > 0) {
-                                                                        $data_terakhir = mysqli_fetch_assoc($query_kunjungan_terakhir);
-                                                                        $id_kunjungan_terakhir = $data_terakhir['id_kunjungan'];
-                                                                    }
-                                                                    $update_rm = mysqli_query($koneksi, "UPDATE rm SET id_kunjungan_terakhir = " . ($id_kunjungan_terakhir ? "'$id_kunjungan_terakhir'" : "NULL") . ", tanggal_status = NOW() WHERE id_pasien = '$id_pasien'");
-                                                                    if (!$update_rm) throw new Exception("Gagal memperbarui rekam medis");
-                                                                }
-                                                                mysqli_commit($koneksi);
-                                                                echo 'OK';
-                                                            } catch (Exception $e) {
-                                                                mysqli_rollback($koneksi);
-                                                                echo 'ERROR: ' . $e->getMessage();
-                                                            }
-                                                            exit;
-                                                        }
-                                                        ?>
-                                                        <script>
-                                                            function hapusKunjungan(id_kunjungan, btn) {
-                                                                if (confirm('Yakin ingin menghapus kunjungan ini?')) {
-                                                                    fetch(window.location.pathname + '?hapus_kunjungan_ajax=1&id_kunjungan=' + id_kunjungan, { method: 'GET' })
-                                                                        .then(response => {
-                                                                            // Cek apakah response berupa JSON atau plain text
-                                                                            const contentType = response.headers.get('content-type');
-                                                                            if (contentType && contentType.indexOf('application/json') !== -1) {
-                                                                                return response.json();
-                                                                            }
-                                                                            return response.text();
-                                                                        })
-                                                                        .then(data => {
-                                                                            // Jika response berupa HTML, kemungkinan session expired atau redirect ke login
-                                                                            if (typeof data === 'string' && data.trim().startsWith('<!DOCTYPE html')) {
-                                                                                alert('Data Kunjungan Berhasil Di Hapus.');
-                                                                                window.location.reload();
-                                                                                return;
-                                                                            }
-                                                                            if (typeof data === 'string' && data.trim() === 'OK') {
-                                                                                removeRow(btn);
-                                                                            } else if (typeof data === 'string') {
-                                                                                alert('Gagal menghapus data kunjungan!\n' + data);
-                                                                                console.error('Error detail:', data);
-                                                                            } else if (typeof data === 'object' && data.status === 'OK') {
-                                                                                removeRow(btn);
-                                                                            } else {
-                                                                                alert('Gagal menghapus data kunjungan!');
-                                                                                console.error('Error detail:', data);
-                                                                            }
-                                                                        })
-                                                                        .catch((err) => {
-                                                                            alert('Terjadi kesalahan saat menghapus data!');
-                                                                            console.error(err);
-                                                                        });
-                                                                }
-                                                            }
-                                                        </script>
                                                     </td>
                                                 </tr>
                                             <?php
@@ -423,13 +393,13 @@
                                                         <input type="text" name="klinikkunjungan[]" class="form-control">
                                                     </td>
                                                     <td>
-                                                        <select name="biaya[]" class="form-control">
+                                                        <select name="biaya[]" class="form-control biaya-select-edit">
                                                             <option value="BPJS" selected>BPJS</option>
                                                             <option value="Umum">Umum</option>
                                                         </select>
                                                     </td>
                                                     <td>
-                                                        <input type="text" name="nobpjs[]" class="form-control">
+                                                        <input type="text" name="nobpjs[]" class="form-control nobpjs-kunjungan-edit">
                                                     </td>
                                                     <td>
                                                         <button type="button" class="btn btn-danger btn-remove-row" onclick="removeRow(this)">Hapus</button>
@@ -441,45 +411,6 @@
                                     <button type="button" class="btn btn-success" id="addRowBtn<?= $idpasien; ?>">Tambah Kunjungan</button>
                                 </div>
                             </div>
-                            <script>
-                                document.addEventListener('DOMContentLoaded', function() {
-                                    document.getElementById('addRowBtn<?= $idpasien; ?>').addEventListener('click', function() {
-                                        var table = document.getElementById('edit_dynamic_field<?= $idpasien; ?>').getElementsByTagName('tbody')[0];
-                                        var newRow = table.insertRow();
-                                        newRow.innerHTML = `
-                                            <td>
-                                                <input type="hidden" name="id_kunjungan[]" value="">
-                                                <input type="date" name="tanggalkunjungan[]" class="form-control">
-                                            </td>
-                                            <td>
-                                                <input type="text" name="keluhankunjungan[]" class="form-control">
-                                            </td>
-                                            <td>
-                                                <input type="text" name="polikunjungan[]" class="form-control">
-                                            </td>
-                                            <td>
-                                                <input type="text" name="klinikkunjungan[]" class="form-control">
-                                            </td>
-                                            <td>
-                                                <select name="biaya[]" class="form-control">
-                                                    <option value="BPJS" selected>BPJS</option>
-                                                    <option value="Umum">Umum</option>
-                                                </select>
-                                            </td>
-                                            <td>
-                                                <input type="text" name="nobpjs[]" class="form-control">
-                                            </td>
-                                            <td>
-                                                <button type="button" class="btn btn-danger btn-remove-row" onclick="removeRow(this)">Hapus</button>
-                                            </td>
-                                        `;
-                                    });
-                                });
-                                function removeRow(btn) {
-                                    var row = btn.closest('tr');
-                                    row.parentNode.removeChild(row);
-                                }
-                            </script>
                         </div>
                         <!-- Tab 4: Upload Rekam Medis -->
                         <div class="tab-pane fade" id="rm<?= $idpasien; ?>" role="tabpanel">
@@ -515,9 +446,137 @@
 </div>
 <!-- End Modal Edit Pasien -->
 
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Inisialisasi untuk modal edit dengan ID spesifik
+    initBPJSBehavior('<?= $idpasien; ?>');
+});
+
+function initBPJSBehavior(modalId) {
+    const nobpjsPasienInput = document.getElementById('nobpjs_pasien_' + modalId);
+    const addRowBtn = document.getElementById('addRowBtn' + modalId);
+    const dynamicField = document.getElementById('edit_dynamic_field' + modalId);
+    
+    let nobpjsPasienValue = nobpjsPasienInput?.value || '';
+    
+    // Simpan nilai No BPJS saat berubah
+    if (nobpjsPasienInput) {
+        nobpjsPasienInput.addEventListener('input', function() {
+            nobpjsPasienValue = this.value;
+        });
+    }
+    
+    // Fungsi untuk menangani perubahan dropdown biaya
+    function handleBiayaChange() {
+        const biayaSelects = dynamicField.querySelectorAll('.biaya-select-edit');
+        const nobpjsKunjunganInputs = dynamicField.querySelectorAll('.nobpjs-kunjungan-edit');
+        
+        biayaSelects.forEach((select, index) => {
+            // Hapus event listener lama jika ada
+            select.removeEventListener('change', handleBiayaChangeEvent);
+            
+            // Tambah event listener baru
+            select.addEventListener('change', handleBiayaChangeEvent);
+            
+            function handleBiayaChangeEvent() {
+                if (this.value === 'BPJS' && nobpjsPasienValue) {
+                    nobpjsKunjunganInputs[index].value = nobpjsPasienValue;
+                } else if (this.value === 'Umum') {
+                    nobpjsKunjunganInputs[index].value = '';
+                }
+            }
+            
+            // Trigger perubahan awal untuk baris yang sudah ada
+            if (select.value === 'BPJS' && nobpjsPasienValue && !nobpjsKunjunganInputs[index].value) {
+                nobpjsKunjunganInputs[index].value = nobpjsPasienValue;
+            }
+        });
+    }
+    
+    // Panggil fungsi saat modal dimuat
+    handleBiayaChange();
+    
+    // Fungsi untuk menambah baris baru
+    if (addRowBtn) {
+        addRowBtn.addEventListener('click', function() {
+            const tbody = dynamicField.querySelector('tbody');
+            const newRow = document.createElement('tr');
+            
+            newRow.innerHTML = `
+                <td>
+                    <input type="hidden" name="id_kunjungan[]" value="">
+                    <input type="date" name="tanggalkunjungan[]" class="form-control" required>
+                </td>
+                <td>
+                    <input type="text" name="keluhankunjungan[]" class="form-control" required>
+                </td>
+                <td>
+                    <input type="text" name="polikunjungan[]" class="form-control">
+                </td>
+                <td>
+                    <input type="text" name="klinikkunjungan[]" class="form-control">
+                </td>
+                <td>
+                    <select name="biaya[]" class="form-control biaya-select-edit">
+                        <option value="BPJS" selected>BPJS</option>
+                        <option value="Umum">Umum</option>
+                    </select>
+                </td>
+                <td>
+                    <input type="text" name="nobpjs[]" class="form-control nobpjs-kunjungan-edit">
+                </td>
+                <td>
+                    <button type="button" class="btn btn-danger btn-remove-row" onclick="removeRow(this)">Hapus</button>
+                </td>
+            `;
+            
+            tbody.appendChild(newRow);
+            
+            // Panggil kembali fungsi untuk menangani dropdown pada baris baru
+            handleBiayaChange();
+        });
+    }
+}
+
+// Fungsi global untuk menghapus baris
+function removeRow(btn) {
+    const row = btn.closest('tr');
+    if (row) {
+        row.remove();
+    }
+}
+
+// Fungsi untuk hapus kunjungan dari database
+function hapusKunjungan(idKunjungan, btn) {
+    if (confirm('Apakah Anda yakin ingin menghapus kunjungan ini?')) {
+        // Kirim request AJAX untuk hapus kunjungan
+        fetch('../../proses/hapus_kunjungan.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: 'id_kunjungan=' + idKunjungan
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                removeRow(btn);
+                alert('Kunjungan berhasil dihapus');
+            } else {
+                alert('Gagal menghapus kunjungan: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Terjadi kesalahan saat menghapus kunjungan');
+        });
+    }
+}
+</script>
                     </td>
                 </tr>
                 <!-- Modal Show RM -->
+                <?php if (!empty($rekamid) && !empty($linkrm)): ?>
                 <div class="modal fade" id="mm<?=$rekamid;?>">
                     <div class="modal-dialog modal-l">
                         <div class="modal-content">
@@ -538,6 +597,7 @@
                         </div>
                     </div>
                 </div>
+                <?php endif; ?>
                 <!-- End Modal Show RM -->
 
             <?php } ?>
@@ -577,249 +637,409 @@
 </div>
 
             <div>
-                <!-- modal daftar -->
-                <div class="modal fade" id="modal-xl">
-                    <div class="modal-dialog modal-xl">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h4 class="modal-title">Tambah Pasien</h4>
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
-                            </div>
-                            <div class="modal-body" style="text-align: center;">
-                                <!-- modal body -->
-                                <div class="container">
-                                    <div class="row">
-                                        <div class="col">
-                                            <form action="../../proses/tambahalldata.php" method="post" class="f1"
-                                                enctype="multipart/form-data">
-                                                <div class="f1-steps">
-                                                    <div class="f1-progress">
-                                                        <div class="f1-progress-line" data-now-value="25"
-                                                            data-number-of-steps="4" style="width: 25%;"></div>
-                                                    </div>
-                                                    <div class="f1-step active">
-                                                        <div class="f1-step-icon"><i class="fa fa-info"></i></div>
-                                                        <p>Informasi</p>
-                                                    </div>
-                                                    <div class="f1-step">
-                                                        <div class="f1-step-icon"><i class="fa fa-user"></i></div>
-                                                        <p>Data Pasien</p>
-                                                    </div>
-                                                    <div class="f1-step">
-                                                        <div class="f1-step-icon"><i class="fa fa-location"></i></div>
-                                                        <p>Data Kunjungan</p>
-                                                    </div>
-                                                    <div class="f1-step">
-                                                        <div class="f1-step-icon"><i class="fa fa-upload"></i></div>
-                                                        <p>Upload Rekam Medis</p>
-                                                    </div>
-                                                </div>
-                                                <!-- step 1 -->
-                                                <fieldset>
-                                                    <h4>Informasi Pengisian</h4>
-                                                    <div class="form-group">
-                                                        <label>Nama Awal</label>
-                                                        <div class="f1-buttons">
-                                                            <button type="button"
-                                                                class="btn btn-primary btn-next">Selanjutnya <i
-                                                                    class="fa fa-arrow-right"></i></button>
-                                                        </div>
-                                                </fieldset>
-                                                <!-- step 2 -->
-                                                <fieldset>
-                                                    <h4>Isi Data Pasien</h4>
-                                                    <div class="row">
-                                                        <div class="col-md-4">
-                                                            <div class="form-group">
-                                                                <label>NIK</label>
-                                                                <input type="number" name="nik"
-                                                                    placeholder="Nomor Induk Kependudukan"
-                                                                    class="form-control">
-                                                            </div>
-                                                            <div class="form-group">
-                                                                <label>Nama Pasien</label>
-                                                                <input type="text" name="namapasien"
-                                                                    placeholder="Nama Pasien" class="form-control">
-                                                            </div>
-                                                            <div class="form-group">
-                                                                <label>Nama Kepala Keluarga Pasien</label>
-                                                                <input type="text" name="namakkpasien"
-                                                                    placeholder="Nama Kepala Keluarga Pasien"
-                                                                    class="form-control">
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-md-4">
-                                                            <div class="form-group">
-                                                                <label>Jenis Kelamin</label>
-                                                                <select class="form-control" name="jeniskelaminpasien">
-                                                                    <option value="Laki Laki">Laki Laki</option>
-                                                                    <option value="Perempuan">Perempuan</option>
-                                                                </select>
-                                                            </div>
-                                                            <div class="form-group">
-                                                                <label>Pekerjaan</label>
-                                                                <input type="text" name="pekerjaanpasien"
-                                                                    placeholder="Pekerjaan" class="form-control">
-                                                            </div>
-                                                            <div class="form-group">
-                                                                <label>Tanggal Lahir</label>
-                                                                <input type="date" id="tanggallahirpasien"
-                                                                    name="tanggallahirpasien" class="form-control">
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-md-4">
-                                                            <div class="form-group">
-                                                                <div class="form-group">
-                                                                    <label>Agama</label>
-                                                                    <input type="text" name="agamapasien"
-                                                                        placeholder="Agama Pasien" class="form-control">
-                                                                </div>
-                                                            </div>
-                                                            <div class="form-group">
-                                                                <label>Alamat</label>
-                                                                <textarea name="alamatpasien"
-                                                                    placeholder="Alamat Pasien"
-                                                                    class="form-control"></textarea>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="f1-buttons">
-                                                        <button type="button" class="btn btn-warning btn-previous"><i
-                                                                class="fa fa-arrow-left"></i> Sebelumnya</button>
-                                                        <button type="button"
-                                                            class="btn btn-primary btn-next">Selanjutnya <i
-                                                                class="fa fa-arrow-right"></i></button>
-                                                    </div>
-                                                </fieldset>
-                                                <!-- step 3 -->
-                                                <fieldset>
-                                                    <h4>Data Kunjungan</h4>
-                                                    <div class="form-group">
-                                                        <div class="table-responsive">
-                                                            <table class="table table-bordered" id="dynamic_field">
-                                                                <tr>
-                                                                    <td class="col-md-1">
-                                                                        <input type="date" name="tanggalkunjungan[]"
-                                                                            class="form-control nilai_list"
-                                                                            placeholder="Tanggal Kunjungan" />
-                                                                    </td>
-                                                                    <td class="col-md-3">
-                                                                        <input type="text" name="keluhankunjungan[]"
-                                                                            class="form-control nilai_list"
-                                                                            placeholder="Diagnosa" />
-                                                                    </td>
-                                                                    <td class="col-md-1">
-                                                                        <input type="text" name="polikunjungan[]"
-                                                                            class="form-control nilai_list"
-                                                                            placeholder="Poli" />
-                                                                    </td>
-                                                                    <td class="col-md-2">
-                                                                        <input type="text" name="klinikkunjungan[]"
-                                                                            class="form-control nilai_list"
-                                                                            placeholder="Klinik" />
-                                                                    </td>
-                                                                    <td class="col-md-2">
-                                                                        <select name="biaya[]" class="form-control">
-                                                                            Biaya
-                                                                            <option value="BPJS" selected>BPJS</option>
-                                                                            <option value="Umum">Umum</option>
-                                                                        </select>
-                                                                    </td>
-                                                                    <td class="col-md-3">
-                                                                        <input type="text" name="nobpjs[]"
-                                                                            class="form-control nilai_list"
-                                                                            placeholder="No BPJS (Kosongi jika Umum)" />
-                                                                    </td>
-                                                                    <td class="col-md-3"><button type="button"
-                                                                            name="add" id="add"
-                                                                            class="btn btn-success">Add More</button>
-                                                                    </td>
-                                                                </tr>
-                                                            </table>
-                                                        </div>
-                                                    </div>
-                                                    <div class="f1-buttons">
-                                                        <button type="button" class="btn btn-warning btn-previous"><i
-                                                                class="fa fa-arrow-left"></i> Sebelumnya</button>
-                                                        <button type="button"
-                                                            class="btn btn-primary btn-next">Selanjutnya <i
-                                                                class="fa fa-arrow-right"></i></button>
-                                                    </div>
-                                                </fieldset>
-                                                <!-- step 4 -->
-                                                <fieldset>
-                                                    <h4>Upload Rekam Medis</h4>
-                                                    <div class="form-group">
-                                                        <div class="form-group">
-                                                            <label>No Rekam Medis</label>
-                                                            <input type="number" name="norm"
-                                                                placeholder="Nomor Rekam Medis" class="form-control" required>
-                                                        </div>
-                                                    </div>
-                                                    <div class="form-group">
-                                                        <label class="small mb-1" for="berkas">File Pdf</label>
-                                                        <input type="file" name="nama_file_pdf" id="nama_file_pdf"
-                                                            accept="application/pdf">
-                                                    </div>
-                                                    <div class="form-group">
-                                                        <div class="form-check">
-                                                            <input type="checkbox" class="form-check-input" id="halamanDisimpanCheckbox" name="halaman_disimpan">
-                                                            <label class="form-check-label" for="halamanDisimpanCheckbox">
-                                                                Apakah ada halaman yang mau disimpan? <br>
-                                                                <small class="text-muted">note : halaman yang disimpan akan tetap ada walau rekam medis dimusnahkan <p> jika tidak ada yang disimpan, bisa check lalu tulis - pada formnya</small>
-                                                            </label>
-                                                        </div>
-                                                        <div id="inputNoHalamanDisimpan" style="display:none; margin-top:10px;">
-                                                            <label for="no_halaman_disimpan">Masukan no halaman yang disimpan</label>
-                                                            <input type="text" class="form-control" name="no_halaman_disimpan" id="no_halaman_disimpan" placeholder="Contoh: 1, 2, 5-7">
-                                                        </div>
-                                                    </div>
-                                                    <script>
-                                                    document.addEventListener('DOMContentLoaded', function() {
-                                                        var checkbox = document.getElementById('halamanDisimpanCheckbox');
-                                                        var inputBox = document.getElementById('inputNoHalamanDisimpan');
-                                                        var inputHalaman = document.getElementById('no_halaman_disimpan');
-                                                        checkbox.addEventListener('change', function() {
-                                                            if (checkbox.checked) {
-                                                                inputBox.style.display = 'block';
-                                                                // inputHalaman.required = true; // Tidak required
-                                                            } else {
-                                                                inputBox.style.display = 'none';
-                                                                inputHalaman.value = '';
-                                                                // inputHalaman.required = false; // Tidak required
-                                                            }
-                                                        });
-                                                        // Pastikan input tidak required saat load
-                                                        // inputHalaman.required = false;
-                                                    });
-                                                    </script>
-                                                    <div class="f1-buttons">
-                                                        <button type="button" class="btn btn-warning btn-previous"><i
-                                                                class="fa fa-arrow-left"></i> Sebelumnya</button>
-                                                        <button type="submit" class="btn btn-primary btn-submit"><i
-                                                                class="fa fa-save"></i> Submit</button>
-                                                    </div>
-                                                </fieldset>
-                                            </form>
-                                        </div>
+           <!-- modal daftar -->
+<div class="modal fade" id="modal-xl">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Tambah Pasien</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" style="text-align: center;">
+                <!-- modal body -->
+                <div class="container">
+                    <div class="row">
+                        <div class="col">
+                            <form action="../../proses/tambahalldata.php" method="post" class="f1"
+                                enctype="multipart/form-data">
+                                <div class="f1-steps">
+                                    <div class="f1-progress">
+                                        <div class="f1-progress-line" data-now-value="25"
+                                            data-number-of-steps="4" style="width: 25%;"></div>
+                                    </div>
+                                    <div class="f1-step active">
+                                        <div class="f1-step-icon"><i class="fa fa-info"></i></div>
+                                        <p>Informasi</p>
+                                    </div>
+                                    <div class="f1-step">
+                                        <div class="f1-step-icon"><i class="fa fa-user"></i></div>
+                                        <p>Data Pasien</p>
+                                    </div>
+                                    <div class="f1-step">
+                                        <div class="f1-step-icon"><i class="fa fa-location"></i></div>
+                                        <p>Data Kunjungan</p>
+                                    </div>
+                                    <div class="f1-step">
+                                        <div class="f1-step-icon"><i class="fa fa-upload"></i></div>
+                                        <p>Upload Rekam Medis</p>
                                     </div>
                                 </div>
-                                <!-- end modal body -->
-                            </div>
-                            <div class="modal-footer justify-content-between">
-                                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                                <a>Dengan menambah Data Pasien, Anda akan juga menambah Data Rekam Medis dan
-                                    Kunjungan</a>
-                            </div>
+                                <!-- step 1 -->
+                                <fieldset>
+                                    <h4>Informasi Pengisian</h4>
+                                    <div class="form-group">
+                                        <label>Nama Awal</label>
+                                        <div class="f1-buttons">
+                                            <button type="button"
+                                                class="btn btn-primary btn-next">Selanjutnya <i
+                                                    class="fa fa-arrow-right"></i></button>
+                                        </div>
+                                </fieldset>
+                                <!-- step 2 -->
+                                <fieldset>
+                                    <h4>Isi Data Pasien</h4>
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label>NIK</label>
+                                                <input type="number" name="nik"
+                                                    placeholder="Nomor Induk Kependudukan"
+                                                    class="form-control">
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Nama Pasien</label>
+                                                <input type="text" name="namapasien"
+                                                    placeholder="Nama Pasien" class="form-control">
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Nama Kepala Keluarga Pasien</label>
+                                                <input type="text" name="namakkpasien"
+                                                    placeholder="Nama Kepala Keluarga Pasien"
+                                                    class="form-control">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label>Jenis Kelamin</label>
+                                                <select class="form-control" name="jeniskelaminpasien">
+                                                    <option value="Laki Laki">Laki Laki</option>
+                                                    <option value="Perempuan">Perempuan</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Pekerjaan</label>
+                                                <input type="text" name="pekerjaanpasien"
+                                                    placeholder="Pekerjaan" class="form-control">
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Tanggal Lahir</label>
+                                                <input type="date" id="tanggallahirpasien"
+                                                    name="tanggallahirpasien" class="form-control">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <div class="form-group">
+                                                    <label>Agama</label>
+                                                    <input type="text" name="agamapasien"
+                                                        placeholder="Agama Pasien" class="form-control">
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>No BPJS</label>
+                                                <input type="text" name="nobpjs_pasien" id="nobpjs_pasien"
+                                                    placeholder="No BPJS (Kosongi jika Umum)" class="form-control">
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Alamat</label>
+                                                <textarea name="alamatpasien"
+                                                    placeholder="Alamat Pasien"
+                                                    class="form-control"></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="f1-buttons">
+                                        <button type="button" class="btn btn-warning btn-previous"><i
+                                                class="fa fa-arrow-left"></i> Sebelumnya</button>
+                                        <button type="button"
+                                            class="btn btn-primary btn-next">Selanjutnya <i
+                                                class="fa fa-arrow-right"></i></button>
+                                    </div>
+                                </fieldset>
+                                <!-- step 3 -->
+                                <fieldset>
+                                    <h4>Data Kunjungan</h4>
+                                    <div class="form-group">
+                                        <div class="table-responsive">
+                                            <table class="table table-bordered" id="dynamic_field">
+                                                <tr>
+                                                    <td class="col-md-1">
+                                                        <input type="date" name="tanggalkunjungan[]"
+                                                            class="form-control nilai_list"
+                                                            placeholder="Tanggal Kunjungan" required/>
+                                                    </td>
+                                                    <td class="col-md-3">
+                                                        <input type="text" name="keluhankunjungan[]"
+                                                            class="form-control nilai_list"
+                                                            placeholder="Diagnosa" required/>
+                                                    </td>
+                                                    <td class="col-md-1">
+                                                        <input type="text" name="polikunjungan[]"
+                                                            class="form-control nilai_list"
+                                                            placeholder="Poli" required/>
+                                                    </td>
+                                                    <td class="col-md-2">
+                                                        <input type="text" name="klinikkunjungan[]"
+                                                            class="form-control nilai_list"
+                                                            placeholder="Klinik" required/>
+                                                    </td>
+                                                    <td class="col-md-2">
+                                                        <select name="biaya[]" class="form-control biaya-select" required>
+                                                            <option value="" disabled selected>Pilih Biaya</option>
+                                                            <option value="BPJS">BPJS</option>
+                                                            <option value="Umum">Umum</option>
+                                                        </select>
+                                                    </td>
+                                                    <td class="col-md-3">
+                                                        <input type="text" name="nobpjs[]"
+                                                            class="form-control nobpjs-kunjungan"
+                                                            placeholder="No BPJS (Kosongi jika Umum)" readonly/>
+                                                    </td>
+                                                    <td class="col-md-3"><button type="button"
+                                                            name="add" id="add"
+                                                            class="btn btn-success">Add More</button>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    <div class="f1-buttons">
+                                        <button type="button" class="btn btn-warning btn-previous"><i
+                                                class="fa fa-arrow-left"></i> Sebelumnya</button>
+                                        <button type="button"
+                                            class="btn btn-primary btn-next">Selanjutnya <i
+                                                class="fa fa-arrow-right"></i></button>
+                                    </div>
+                                </fieldset>
+                                <!-- step 4 -->
+                                <fieldset>
+                                    <h4>Upload Rekam Medis</h4>
+                                    <div class="form-group">
+                                        <div class="form-group">
+                                            <label>No Rekam Medis</label>
+                                            <input type="number" name="norm"
+                                                placeholder="Nomor Rekam Medis" class="form-control" required>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="small mb-1" for="berkas">File Pdf</label>
+                                        <input type="file" name="nama_file_pdf" id="nama_file_pdf"
+                                            accept="application/pdf">
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="form-check">
+                                            <input type="checkbox" class="form-check-input" id="halamanDisimpanCheckbox" name="halaman_disimpan">
+                                            <label class="form-check-label" for="halamanDisimpanCheckbox">
+                                                Apakah ada halaman yang mau disimpan? <br>
+                                                <small class="text-muted">note : halaman yang disimpan akan tetap ada walau rekam medis dimusnahkan <p> jika tidak ada yang disimpan, bisa check lalu tulis - pada formnya</small>
+                                            </label>
+                                        </div>
+                                        <div id="inputNoHalamanDisimpan" style="display:none; margin-top:10px;">
+                                            <label for="no_halaman_disimpan">Masukan no halaman yang disimpan</label>
+                                            <input type="text" class="form-control" name="no_halaman_disimpan" id="no_halaman_disimpan" placeholder="Contoh: 1, 2, 5-7">
+                                        </div>
+                                    </div>
+                                    <script>
+                                    document.addEventListener('DOMContentLoaded', function() {
+                                        var checkbox = document.getElementById('halamanDisimpanCheckbox');
+                                        var inputBox = document.getElementById('inputNoHalamanDisimpan');
+                                        var inputHalaman = document.getElementById('no_halaman_disimpan');
+                                        checkbox.addEventListener('change', function() {
+                                            if (checkbox.checked) {
+                                                inputBox.style.display = 'block';
+                                            } else {
+                                                inputBox.style.display = 'none';
+                                                inputHalaman.value = '';
+                                            }
+                                        });
+                                    });
+                                    </script>
+                                    <div class="f1-buttons">
+                                        <button type="button" class="btn btn-warning btn-previous"><i
+                                                class="fa fa-arrow-left"></i> Sebelumnya</button>
+                                        <button type="submit" class="btn btn-primary btn-submit"><i
+                                                class="fa fa-save"></i> Submit</button>
+                                    </div>
+                                </fieldset>
+                            </form>
                         </div>
-                        <!-- /.modal-content -->
                     </div>
-                    <!-- /.modal-dialog -->
                 </div>
-                <!-- end modal daftar -->
-                 <!-- ========================= -->
+                <!-- end modal body -->
+            </div>
+            <div class="modal-footer justify-content-between">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <a>Dengan menambah Data Pasien, Anda akan juga menambah Data Rekam Medis dan
+                    Kunjungan</a>
+            </div>
+        </div>
+        <!-- /.modal-content -->
+    </div>
+    <!-- /.modal-dialog -->
+</div>
+<!-- end modal daftar -->
+<!-- ========================= -->
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Variabel untuk menyimpan nilai No BPJS dari field 2
+    let nobpjsPasienValue = '';
+    
+    // Ambil nilai No BPJS dari field 2 saat berubah
+    const nobpjsPasienInput = document.getElementById('nobpjs_pasien');
+    nobpjsPasienInput.addEventListener('input', function() {
+        nobpjsPasienValue = this.value;
+    });
+    
+    // Fungsi untuk menangani perubahan dropdown biaya
+    function handleBiayaChange() {
+        const biayaSelects = document.querySelectorAll('.biaya-select');
+        const nobpjsKunjunganInputs = document.querySelectorAll('.nobpjs-kunjungan');
+        
+        biayaSelects.forEach((select, index) => {
+            select.addEventListener('change', function() {
+                if (this.value === 'BPJS' && nobpjsPasienValue) {
+                    nobpjsKunjunganInputs[index].value = nobpjsPasienValue;
+                } else if (this.value === 'Umum') {
+                    nobpjsKunjunganInputs[index].value = '';
+                }
+            });
+        });
+    }
+    
+    // Panggil fungsi saat halaman dimuat untuk baris pertama
+    handleBiayaChange();
+    
+    // Fungsi untuk menambah baris baru pada tabel kunjungan
+    document.getElementById('add').addEventListener('click', function() {
+        const dynamicField = document.getElementById('dynamic_field');
+        const newRow = document.createElement('tr');
+        
+        newRow.innerHTML = `
+            <td class="col-md-1">
+                <input type="date" name="tanggalkunjungan[]" class="form-control nilai_list" placeholder="Tanggal Kunjungan" required/>
+            </td>
+            <td class="col-md-3">
+                <input type="text" name="keluhankunjungan[]" class="form-control nilai_list" placeholder="Diagnosa" required/>
+            </td>
+            <td class="col-md-1">
+                <input type="text" name="polikunjungan[]" class="form-control nilai_list" placeholder="Poli" required/>
+            </td>
+            <td class="col-md-2">
+                <input type="text" name="klinikkunjungan[]" class="form-control nilai_list" placeholder="Klinik" required/>
+            </td>
+            <td class="col-md-2">
+                <select name="biaya[]" class="form-control biaya-select" required>
+                    <option value="" disabled selected>Pilih Biaya</option>
+                    <option value="BPJS">BPJS</option>
+                    <option value="Umum">Umum</option>
+                </select>
+            </td>
+            <td class="col-md-3">
+                <input type="text" name="nobpjs[]" class="form-control nobpjs-kunjungan" placeholder="No BPJS (Kosongi jika Umum)" />
+            </td>
+            <td class="col-md-3">
+                <button type="button" name="remove" class="btn btn-danger btn_remove">Remove</button>
+            </td>
+        `;
+        
+        dynamicField.appendChild(newRow);
+        
+        // Tambahkan event listener untuk tombol remove
+        newRow.querySelector('.btn_remove').addEventListener('click', function() {
+            this.closest('tr').remove();
+        });
+        
+        // Panggil kembali fungsi untuk menangani perubahan dropdown pada baris baru
+        handleBiayaChange();
+    });
+    
+    // Tambahkan event listener untuk tombol remove yang sudah ada
+    document.querySelectorAll('.btn_remove').forEach(button => {
+        button.addEventListener('click', function() {
+            this.closest('tr').remove();
+        });
+    });
+});
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Fungsi untuk menangani perubahan dropdown biaya
+    function handleBiayaChange() {
+        const biayaSelects = document.querySelectorAll('.biaya-select');
+        const nobpjsPasien = document.getElementById('nobpjs_pasien').value;
+        
+        biayaSelects.forEach((select, index) => {
+            select.addEventListener('change', function() {
+                const nobpjsInputs = document.querySelectorAll('.nobpjs-kunjungan');
+                
+                if (this.value === 'BPJS' && nobpjsPasien) {
+                    nobpjsInputs[index].value = nobpjsPasien;
+                } else if (this.value === 'Umum') {
+                    nobpjsInputs[index].value = '';
+                }
+            });
+        });
+    }
+    
+    // Panggil fungsi saat halaman dimuat
+    handleBiayaChange();
+    
+    // Fungsi untuk menambah baris baru pada tabel kunjungan
+    document.getElementById('add').addEventListener('click', function() {
+        const dynamicField = document.getElementById('dynamic_field');
+        const newRow = document.createElement('tr');
+        
+        newRow.innerHTML = `
+            <td class="col-md-1">
+                <input type="date" name="tanggalkunjungan[]" class="form-control nilai_list" placeholder="Tanggal Kunjungan" required/>
+            </td>
+            <td class="col-md-3">
+                <input type="text" name="keluhankunjungan[]" class="form-control nilai_list" placeholder="Diagnosa" required/>
+            </td>
+            <td class="col-md-1">
+                <input type="text" name="polikunjungan[]" class="form-control nilai_list" placeholder="Poli" required/>
+            </td>
+            <td class="col-md-2">
+                <input type="text" name="klinikkunjungan[]" class="form-control nilai_list" placeholder="Klinik" required/>
+            </td>
+            <td class="col-md-2">
+                <select name="biaya[]" class="form-control biaya-select" required>
+                    <option value="" disabled selected>Pilih Biaya</option>
+                    <option value="BPJS">BPJS</option>
+                    <option value="Umum">Umum</option>
+                </select>
+            </td>
+            <td class="col-md-3">
+                <input type="text" name="nobpjs[]" class="form-control nobpjs-kunjungan" placeholder="No BPJS (Kosongi jika Umum)" />
+            </td>
+            <td class="col-md-3">
+                <button type="button" name="remove" class="btn btn-danger btn_remove">Remove</button>
+            </td>
+        `;
+        
+        dynamicField.appendChild(newRow);
+        
+        // Tambahkan event listener untuk tombol remove
+        newRow.querySelector('.btn_remove').addEventListener('click', function() {
+            this.closest('tr').remove();
+        });
+        
+        // Panggil kembali fungsi untuk menangani perubahan dropdown pada baris baru
+        handleBiayaChange();
+    });
+    
+    // Tambahkan event listener untuk tombol remove yang sudah ada
+    document.querySelectorAll('.btn_remove').forEach(button => {
+        button.addEventListener('click', function() {
+            this.closest('tr').remove();
+        });
+    });
+});
+</script>
                
     </section>
 </div>
@@ -834,6 +1054,44 @@ function confirmDelete()
   {
       return false;
   }
+}
+
+// Fungsi untuk hapus kunjungan AJAX
+function hapusKunjungan(id_kunjungan, btn) {
+    if (confirm('Yakin ingin menghapus kunjungan ini?')) {
+        fetch(window.location.pathname + '?hapus_kunjungan_ajax=1&id_kunjungan=' + id_kunjungan, { method: 'GET' })
+            .then(response => {
+                // Cek apakah response berupa JSON atau plain text
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.indexOf('application/json') !== -1) {
+                    return response.json();
+                }
+                return response.text();
+            })
+            .then(data => {
+                // Jika response berupa HTML, kemungkinan session expired atau redirect ke login
+                if (typeof data === 'string' && data.trim().startsWith('<!DOCTYPE html')) {
+                    alert('Data Kunjungan Berhasil Di Hapus.');
+                    window.location.reload();
+                    return;
+                }
+                if (typeof data === 'string' && data.trim() === 'OK') {
+                    removeRow(btn);
+                } else if (typeof data === 'string') {
+                    alert('Gagal menghapus data kunjungan!\n' + data);
+                    console.error('Error detail:', data);
+                } else if (typeof data === 'object' && data.status === 'OK') {
+                    removeRow(btn);
+                } else {
+                    alert('Gagal menghapus data kunjungan!');
+                    console.error('Error detail:', data);
+                }
+            })
+            .catch((err) => {
+                alert('Terjadi kesalahan saat menghapus data!');
+                console.error(err);
+            });
+    }
 }
 </script>
 <?php include 'template/footer.php'; ?>

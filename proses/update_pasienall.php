@@ -12,6 +12,7 @@ $pekerjaan_pasien = $_POST['pekerjaan_pasien'];
 $tanggal_lahir_pasien = $_POST['tanggal_lahir_pasien'];
 $agama_pasien = $_POST['agama_pasien'];
 $alamat_pasien = $_POST['alamat_pasien'];
+$nobpjs_pasien = $_POST['nobpjs_pasien'];
 
 // Update data pasien
 mysqli_query($koneksi, "UPDATE pasien SET 
@@ -22,7 +23,8 @@ mysqli_query($koneksi, "UPDATE pasien SET
     pekerjaan_pasien='$pekerjaan_pasien',
     tanggal_lahir_pasien='$tanggal_lahir_pasien',
     agama_pasien='$agama_pasien',
-    alamat_pasien='$alamat_pasien'
+    alamat_pasien='$alamat_pasien',
+    no_bpjs_pasien='$nobpjs_pasien'
     WHERE id_pasien='$id_pasien'
 ");
 

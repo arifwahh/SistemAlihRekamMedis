@@ -10,6 +10,7 @@ $jeniskelamin_pasien = $_POST['jeniskelaminpasien'];
 $pekerjaan_pasien = $_POST['pekerjaanpasien'];
 $tanggallahir_pasien = $_POST['tanggallahirpasien'];
 $agama_pasien = $_POST['agamapasien'];
+$nobpjs_pasien = $_POST['nobpjs_pasien'];
 $alamat_pasien = $_POST['alamatpasien'];
 $halaman_disimpan = isset($_POST['halaman_disimpan']) ? 1 : 0;
 $no_halaman_disimpan = isset($_POST['no_halaman_disimpan']) && $_POST['no_halaman_disimpan'] !== '' ? $_POST['no_halaman_disimpan'] : '-';
@@ -26,7 +27,7 @@ $file_tmp = $_FILES['nama_file_pdf']['tmp_name'];
 $dirUpload = "../assets/pdfrm/";
 $linkBerkas = $dirUpload.$namaFile;
 // menginput data ke database
-mysqli_query($koneksi, "insert into pasien values('','$nik_pasien','$nama_pasien','$namakk_pasien','$jeniskelamin_pasien','$pekerjaan_pasien','$tanggallahir_pasien','$agama_pasien','$alamat_pasien')");
+mysqli_query($koneksi, "insert into pasien values('','$nik_pasien','$nama_pasien','$namakk_pasien','$jeniskelamin_pasien','$pekerjaan_pasien','$tanggallahir_pasien','$agama_pasien','$alamat_pasien','$nobpjs_pasien')");
 
 if($number > 0)  
  {  

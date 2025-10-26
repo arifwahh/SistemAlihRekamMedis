@@ -59,6 +59,60 @@
                 $totalRmCount = $conn->query("SELECT COUNT(*) AS count FROM rm")->fetch_assoc()['count'];
                 $totalPenggunaCount = $conn->query("SELECT COUNT(*) AS count FROM pengguna")->fetch_assoc()['count'];
                 $totalBeritaAcaraCount = $conn->query("SELECT COUNT(*) AS count FROM berita_acara")->fetch_assoc()['count'];
+
+                // Data untuk chart berdasarkan tahun
+                // Mendapatkan tahun-tahun unik dari data kunjungan
+                $tahunQuery = $conn->query("SELECT DISTINCT YEAR(tanggal_kunjungan) as tahun FROM kunjungan ORDER BY tahun DESC LIMIT 5");
+                $tahun = [];
+                while ($row = $tahunQuery->fetch_assoc()) {
+                    $tahun[] = $row['tahun'];
+                }
+
+                // Data untuk setiap kategori per tahun
+                $aktifPerTahun = [];
+                $inaktifPerTahun = [];
+                $retensiPerTahun = [];
+                $musnahPerTahun = [];
+
+                foreach ($tahun as $year) {
+                    // Data aktif per tahun
+                    $aktifQuery = $conn->query("SELECT COUNT(DISTINCT a.id_pasien) AS count 
+                                               FROM pasien a 
+                                               JOIN kunjungan b ON a.id_pasien = b.id_pasien 
+                                               WHERE YEAR(b.tanggal_kunjungan) = $year 
+                                               AND b.tanggal_kunjungan > DATE_SUB(CURDATE(), INTERVAL 2 YEAR)");
+                    $aktifPerTahun[] = $aktifQuery->fetch_assoc()['count'];
+
+                    // Data inaktif per tahun
+                    $inaktifQuery = $conn->query("SELECT COUNT(DISTINCT a.id_pasien) AS count 
+                                                 FROM pasien a 
+                                                 JOIN kunjungan b ON a.id_pasien = b.id_pasien 
+                                                 JOIN rm c ON a.id_pasien = c.id_pasien 
+                                                 WHERE YEAR(b.tanggal_kunjungan) = $year 
+                                                 AND b.tanggal_kunjungan < DATE_SUB(CURDATE(), INTERVAL 2 YEAR) 
+                                                 AND c.status = '-'");
+                    $inaktifPerTahun[] = $inaktifQuery->fetch_assoc()['count'];
+
+                    // Data retensi per tahun
+                    $retensiQuery = $conn->query("SELECT COUNT(DISTINCT a.id_pasien) AS count 
+                                                 FROM pasien a 
+                                                 JOIN kunjungan b ON a.id_pasien = b.id_pasien 
+                                                 JOIN rm c ON a.id_pasien = c.id_pasien 
+                                                 WHERE YEAR(b.tanggal_kunjungan) = $year 
+                                                 AND b.tanggal_kunjungan < DATE_SUB(CURDATE(), INTERVAL 2 YEAR) 
+                                                 AND c.status = 'RETENSI'");
+                    $retensiPerTahun[] = $retensiQuery->fetch_assoc()['count'];
+
+                    // Data musnah per tahun
+                    $musnahQuery = $conn->query("SELECT COUNT(DISTINCT a.id_pasien) AS count 
+                                                FROM pasien a 
+                                                JOIN kunjungan b ON a.id_pasien = b.id_pasien 
+                                                JOIN rm c ON a.id_pasien = c.id_pasien 
+                                                WHERE YEAR(b.tanggal_kunjungan) = $year 
+                                                AND b.tanggal_kunjungan < DATE_SUB(CURDATE(), INTERVAL 2 YEAR) 
+                                                AND c.status = 'MUSNAH'");
+                    $musnahPerTahun[] = $musnahQuery->fetch_assoc()['count'];
+                }
                 ?>
 
                 <div class="col-lg-3 col-6">
@@ -136,7 +190,7 @@
                 <div class="col-12">
                     <div class="card card-outline card-info">
                         <div class="card-header">
-                            <h3 class="card-title">Diagram Alir Data Pasien</h3>
+                            <h3 class="card-title">Diagram Alir Data Pasien Berdasarkan Tahun</h3>
                         </div>
                         <div class="card-body">
                             <!-- Tambahkan style width dan height pada canvas agar chart tidak mengecil -->
@@ -149,79 +203,79 @@
     </section>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
+        // Data dari PHP untuk chart
+        const tahun = <?php echo json_encode($tahun); ?>;
+        const dataAktif = <?php echo json_encode($aktifPerTahun); ?>;
+        const dataInaktif = <?php echo json_encode($inaktifPerTahun); ?>;
+        const dataRetensi = <?php echo json_encode($retensiPerTahun); ?>;
+        const dataMusnah = <?php echo json_encode($musnahPerTahun); ?>;
+
         // Atur ukuran canvas secara eksplisit agar chart tidak mengecil
         const ctx = document.getElementById('pasienChart').getContext('2d');
         const pasienChart = new Chart(ctx, {
-            type: 'line',
+            type: 'bar',
             data: {
-                labels: [
-                    'Total Pasien',
-                    'RM Aktif',
-                    'RM Inaktif',
-                    'Retensi',
-                    'Musnah',
-                    'Total RM',
-                    'Total Pengguna',
-                    'Total Berita Acara'
-                ],
-                datasets: [{
-                    label: 'Jumlah',
-                    data: [
-                        <?php echo $pasienCount; ?>,
-                        <?php echo $rmAktifCount; ?>,
-                        <?php echo $rmInaktifCount; ?>,
-                        <?php echo $retensiCount; ?>,
-                        <?php echo $musnahCount; ?>,
-                        <?php echo $totalRmCount; ?>,
-                        <?php echo $totalPenggunaCount; ?>,
-                        <?php echo $totalBeritaAcaraCount; ?>
-                    ],
-                    backgroundColor: [
-                        'rgba(23, 162, 184, 0.2)',
-                        'rgba(40, 167, 69, 0.2)',
-                        'rgba(255, 193, 7, 0.2)',
-                        'rgba(0, 123, 255, 0.2)',
-                        'rgba(220, 53, 69, 0.2)',
-                        'rgba(108, 117, 125, 0.2)',
-                        'rgba(32, 201, 151, 0.2)',
-                        'rgba(248, 249, 250, 0.2)'
-                    ],
-                    borderColor: [
-                        'rgba(23, 162, 184, 1)',
-                        'rgba(40, 167, 69, 1)',
-                        'rgba(255, 193, 7, 1)',
-                        'rgba(0, 123, 255, 1)',
-                        'rgba(220, 53, 69, 1)',
-                        'rgba(108, 117, 125, 1)',
-                        'rgba(32, 201, 151, 1)',
-                        'rgba(248, 249, 250, 1)'
-                    ],
-                    borderWidth: 2,
-                    fill: true,
-                    tension: 0.3,
-                    pointBackgroundColor: [
-                        'rgba(23, 162, 184, 1)',
-                        'rgba(40, 167, 69, 1)',
-                        'rgba(255, 193, 7, 1)',
-                        'rgba(0, 123, 255, 1)',
-                        'rgba(220, 53, 69, 1)',
-                        'rgba(108, 117, 125, 1)',
-                        'rgba(32, 201, 151, 1)',
-                        'rgba(108, 117, 125, 1)'
-                    ],
-                    pointRadius: 5
-                }]
+                labels: tahun,
+                datasets: [
+                    {
+                        label: 'Aktif',
+                        data: dataAktif,
+                        backgroundColor: 'rgba(40, 167, 69, 0.7)',
+                        borderColor: 'rgba(40, 167, 69, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Inaktif',
+                        data: dataInaktif,
+                        backgroundColor: 'rgba(255, 193, 7, 0.7)',
+                        borderColor: 'rgba(255, 193, 7, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Retensi',
+                        data: dataRetensi,
+                        backgroundColor: 'rgba(0, 123, 255, 0.7)',
+                        borderColor: 'rgba(0, 123, 255, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Musnah',
+                        data: dataMusnah,
+                        backgroundColor: 'rgba(220, 53, 69, 0.7)',
+                        borderColor: 'rgba(220, 53, 69, 1)',
+                        borderWidth: 1
+                    }
+                ]
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: false, // Tambahkan ini agar chart mengikuti tinggi yang diatur
+                maintainAspectRatio: false,
                 plugins: {
-                    legend: { display: false }
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false
+                    }
                 },
                 scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Tahun'
+                        }
+                    },
                     y: {
                         beginAtZero: true,
-                        precision: 0
+                        title: {
+                            display: true,
+                            text: 'Total'
+                        },
+                        ticks: {
+                            precision: 0
+                        }
                     }
                 }
             }

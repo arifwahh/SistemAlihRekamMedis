@@ -33,7 +33,6 @@ $id_kunjungan_arr = $_POST['id_kunjungan'];
 $tanggal_kunjungan_arr = $_POST['tanggalkunjungan'];
 $keluhan_kunjungan_arr = $_POST['keluhankunjungan'];
 $poli_kunjungan_arr = $_POST['polikunjungan'];
-$klinik_kunjungan_arr = $_POST['klinikkunjungan'];
 $biaya_arr = $_POST['biaya'];
 $nobpjs_arr = $_POST['nobpjs'];
 
@@ -42,7 +41,6 @@ for ($i = 0; $i < count($keluhan_kunjungan_arr); $i++) {
     $tanggal_kunjungan = $tanggal_kunjungan_arr[$i];
     $keluhan_kunjungan = $keluhan_kunjungan_arr[$i];
     $poli_kunjungan = $poli_kunjungan_arr[$i];
-    $klinik_kunjungan = $klinik_kunjungan_arr[$i];
     $biaya = $biaya_arr[$i];
     $nobpjs = $nobpjs_arr[$i];
 
@@ -54,16 +52,15 @@ for ($i = 0; $i < count($keluhan_kunjungan_arr); $i++) {
             tanggal_kunjungan='$tanggal_kunjungan',
             keluhan_kunjungan='$keluhan_kunjungan',
             poli_kunjungan='$poli_kunjungan',
-            klinik_kunjungan='$klinik_kunjungan',
             biaya_kunjungan='$biaya',
             no_bpjs_kunjungan='$nobpjs'
             WHERE id_kunjungan='$id_kunjungan' AND id_pasien='$id_pasien'
         ");
     } else {
         mysqli_query($koneksi, "INSERT INTO kunjungan 
-            (id_pasien, tanggal_kunjungan, keluhan_kunjungan, poli_kunjungan, klinik_kunjungan, biaya_kunjungan, no_bpjs_kunjungan)
+            (id_pasien, tanggal_kunjungan, keluhan_kunjungan, poli_kunjungan, biaya_kunjungan, no_bpjs_kunjungan)
             VALUES 
-            ('$id_pasien', '$tanggal_kunjungan', '$keluhan_kunjungan', '$poli_kunjungan', '$klinik_kunjungan', '$biaya', '$nobpjs')
+            ('$id_pasien', '$tanggal_kunjungan', '$keluhan_kunjungan', '$poli_kunjungan', '$biaya', '$nobpjs')
         ");
     }
 }

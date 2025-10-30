@@ -25,9 +25,6 @@
                                                                     <div class="col-md-1">
                                                                      <strong>Poli</strong>
                                                                     </div>
-                                                                    <div class="col-md-2">
-                                                                     <strong>Klinik</strong>
-                                                                    </div>
                                                                     <div class="col-md-1">
                                                                      <strong>Biaya</strong>
                                                                     </div>
@@ -48,9 +45,6 @@
                                                                     </div> 
                                                                     <div class="col-md-1">
                                                                     <?php echo $kunjungan['poli_kunjungan']; ?>
-                                                                    </div> 
-                                                                    <div class="col-md-2">
-                                                                    <?php echo $kunjungan['klinik_kunjungan']; ?>
                                                                     </div> 
                                                                     <div class="col-md-1">
                                                                     <?php echo $kunjungan['biaya_kunjungan']; ?>

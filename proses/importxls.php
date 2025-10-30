@@ -29,7 +29,6 @@ if (isset($_FILES['file_excel']) && $_FILES['file_excel']['error'] == 0) {
         $tanggal_kunjungan = trim($row[8]);
         $diagnosa = trim($row[9]);
         $poli = trim($row[10]);
-        $klinik = trim($row[11]);
         $biaya = trim($row[12]);
         $no_bpjs = trim($row[13]);
         $norm = trim($row[14]);
@@ -51,21 +50,19 @@ if (isset($_FILES['file_excel']) && $_FILES['file_excel']['error'] == 0) {
         $arr_tanggal = array_map('trim', explode(',', $tanggal_kunjungan));
         $arr_diagnosa = array_map('trim', explode(',', $diagnosa));
         $arr_poli = array_map('trim', explode(',', $poli));
-        $arr_klinik = array_map('trim', explode(',', $klinik));
         $arr_biaya = array_map('trim', explode(',', $biaya));
         $arr_nobpjs = array_map('trim', explode(',', $no_bpjs));
-        $max = max(count($arr_tanggal), count($arr_diagnosa), count($arr_poli), count($arr_klinik), count($arr_biaya), count($arr_nobpjs));
+        $max = max(count($arr_tanggal), count($arr_diagnosa), count($arr_poli), count($arr_biaya), count($arr_nobpjs));
 
         for ($j = 0; $j < $max; $j++) {
             $tgl = $arr_tanggal[$j] ?? '';
             $diag = $arr_diagnosa[$j] ?? '';
             $pol = $arr_poli[$j] ?? '';
-            $klin = $arr_klinik[$j] ?? '';
             $by = $arr_biaya[$j] ?? '';
             $nbpjs = $arr_nobpjs[$j] ?? '';
 
             if ($tgl != '') {
-                mysqli_query($koneksi, "INSERT INTO kunjungan (id_kunjungan, id_pasien, tanggal_kunjungan, keluhan_kunjungan, poli_kunjungan, klinik_kunjungan, biaya_kunjungan, no_bpjs_kunjungan) VALUES ('', '$id_pasien', '$tgl', '$diag', '$pol', '$klin', '$by', '$nbpjs')");
+                mysqli_query($koneksi, "INSERT INTO kunjungan (id_kunjungan, id_pasien, tanggal_kunjungan, keluhan_kunjungan, poli_kunjungan, biaya_kunjungan, no_bpjs_kunjungan) VALUES ('', '$id_pasien', '$tgl', '$diag', '$pol', '$by', '$nbpjs')");
                 $id_kunjungan = mysqli_insert_id($koneksi);
             }
         

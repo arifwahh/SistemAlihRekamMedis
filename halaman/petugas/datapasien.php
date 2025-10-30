@@ -332,7 +332,6 @@
                                                 <th>Tanggal Kunjungan</th>
                                                 <th>Diagnosa</th>
                                                 <th>Poli</th>
-                                                <th>Klinik</th>
                                                 <th>Biaya</th>
                                                 <th>No BPJS</th>
                                                 <th>Aksi</th>
@@ -351,12 +350,13 @@
                                                     <td>
                                                         <input type="text" name="keluhankunjungan[]" class="form-control" value="<?= htmlspecialchars($row['keluhan_kunjungan']); ?>" required readonly>
                                                     </td>
-                                                    <td>
-                                                        <input type="text" name="polikunjungan[]" class="form-control" value="<?= htmlspecialchars($row['poli_kunjungan']); ?>" readonly>
-                                                    </td>
-                                                    <td>
-                                                        <input type="text" name="klinikkunjungan[]" class="form-control" value="<?= htmlspecialchars($row['klinik_kunjungan']); ?>" readonly>
-                                                    </td>
+                                                    <td><select name="polikunjungan[]" class="form-control" readonly disabled>
+    <option value="RPU" <?= $row['poli_kunjungan'] == 'RPU' ? 'selected' : '' ?>>RPU</option>
+    <option value="RPA" <?= $row['poli_kunjungan'] == 'RPA' ? 'selected' : '' ?>>RPA</option>
+    <option value="Gigi" <?= $row['poli_kunjungan'] == 'Gigi' ? 'selected' : '' ?>>Gigi</option>
+    <option value="KIA" <?= $row['poli_kunjungan'] == 'KIA' ? 'selected' : '' ?>>KIA</option>
+    <option value="TB" <?= $row['poli_kunjungan'] == 'TB' ? 'selected' : '' ?>>TB</option>
+</select></td>
                                                     <td>
                                                         <select name="biaya[]" class="form-control biaya-select-edit" disabled>
                                                             <option value="BPJS" <?= ($row['biaya_kunjungan'] == 'BPJS') ? 'selected' : ''; ?>>BPJS</option>
@@ -387,10 +387,13 @@
                                                         <input type="text" name="keluhankunjungan[]" class="form-control">
                                                     </td>
                                                     <td>
-                                                        <input type="text" name="polikunjungan[]" class="form-control">
-                                                    </td>
-                                                    <td>
-                                                        <input type="text" name="klinikkunjungan[]" class="form-control">
+                                                       <select name="polikunjungan[]" class="form-control">
+    <option value="RPU">RPU</option>
+    <option value="RPA">RPA</option>
+    <option value="Gigi">Gigi</option>
+    <option value="KIA">KIA</option>
+    <option value="TB">TB</option>
+</select>
                                                     </td>
                                                     <td>
                                                         <select name="biaya[]" class="form-control biaya-select-edit">
@@ -511,10 +514,13 @@ function initBPJSBehavior(modalId) {
                     <input type="text" name="keluhankunjungan[]" class="form-control" required>
                 </td>
                 <td>
-                    <input type="text" name="polikunjungan[]" class="form-control">
-                </td>
-                <td>
-                    <input type="text" name="klinikkunjungan[]" class="form-control">
+                    <select name="polikunjungan[]" class="form-control">
+    <option value="RPU">RPU</option>
+    <option value="RPA">RPA</option>
+    <option value="Gigi">Gigi</option>
+    <option value="KIA">KIA</option>
+    <option value="TB">TB</option>
+</select>
                 </td>
                 <td>
                     <select name="biaya[]" class="form-control biaya-select-edit">
@@ -775,15 +781,14 @@ function hapusKunjungan(idKunjungan, btn) {
                                                             class="form-control nilai_list"
                                                             placeholder="Diagnosa" required/>
                                                     </td>
-                                                    <td class="col-md-1">
-                                                        <input type="text" name="polikunjungan[]"
-                                                            class="form-control nilai_list"
-                                                            placeholder="Poli" required/>
-                                                    </td>
-                                                    <td class="col-md-2">
-                                                        <input type="text" name="klinikkunjungan[]"
-                                                            class="form-control nilai_list"
-                                                            placeholder="Klinik" required/>
+                                                    <td class="col-md-3">
+                                                        <select name="polikunjungan[]" class="form-control nilai_list" required>
+                                                            <option value="RPU">RPU</option>
+                                                            <option value="RPA">RPA</option>
+                                                            <option value="Gigi">Gigi</option>
+                                                            <option value="KIA">KIA</option>
+                                                            <option value="TB">TB</option>
+                                                        </select>
                                                     </td>
                                                     <td class="col-md-2">
                                                         <select name="biaya[]" class="form-control biaya-select" required>
@@ -924,11 +929,14 @@ document.addEventListener('DOMContentLoaded', function() {
             <td class="col-md-3">
                 <input type="text" name="keluhankunjungan[]" class="form-control nilai_list" placeholder="Diagnosa" required/>
             </td>
-            <td class="col-md-1">
-                <input type="text" name="polikunjungan[]" class="form-control nilai_list" placeholder="Poli" required/>
-            </td>
-            <td class="col-md-2">
-                <input type="text" name="klinikkunjungan[]" class="form-control nilai_list" placeholder="Klinik" required/>
+            <td class="col-md-3">
+                <select name="polikunjungan[]" class="form-control nilai_list" required>
+                    <option value="RPU">RPU</option>
+                    <option value="RPA">RPA</option>
+                    <option value="Gigi">Gigi</option>
+                    <option value="KIA">KIA</option>
+                    <option value="TB">TB</option>
+                </select>
             </td>
             <td class="col-md-2">
                 <select name="biaya[]" class="form-control biaya-select" required>
@@ -1000,11 +1008,14 @@ document.addEventListener('DOMContentLoaded', function() {
             <td class="col-md-3">
                 <input type="text" name="keluhankunjungan[]" class="form-control nilai_list" placeholder="Diagnosa" required/>
             </td>
-            <td class="col-md-1">
-                <input type="text" name="polikunjungan[]" class="form-control nilai_list" placeholder="Poli" required/>
-            </td>
-            <td class="col-md-2">
-                <input type="text" name="klinikkunjungan[]" class="form-control nilai_list" placeholder="Klinik" required/>
+            <td class="col-md-3">
+                <select name="polikunjungan[]" class="form-control nilai_list" required>
+                    <option value="RPU">RPU</option>
+                    <option value="RPA">RPA</option>
+                    <option value="Gigi">Gigi</option>
+                    <option value="KIA">KIA</option>
+                    <option value="TB">TB</option>
+                </select>
             </td>
             <td class="col-md-2">
                 <select name="biaya[]" class="form-control biaya-select" required>

@@ -39,7 +39,7 @@ if($number > 0)
                 $getidpasien = mysqli_fetch_array($fetchidpasien);
                 $idpasien = $getidpasien['id_pasien'];
                 $arr = $_POST['keluhankunjungan'][$i];
-                $addkunjungan = "INSERT INTO kunjungan (id_kunjungan,id_pasien,tanggal_kunjungan,keluhan_kunjungan,poli_kunjungan,klinik_kunjungan,biaya_kunjungan,no_bpjs_kunjungan) VALUES('".mysqli_real_escape_string($koneksi, $_POST[""][$i])."','".$idpasien."','".$_POST['tanggalkunjungan'][$i]."','".$_POST['keluhankunjungan'][$i]."','".$_POST['polikunjungan'][$i]."','".$_POST['klinikkunjungan'][$i]."','".$_POST['biaya'][$i]."','".$_POST['nobpjs'][$i]."')";  
+                $addkunjungan = "INSERT INTO kunjungan (id_kunjungan,id_pasien,tanggal_kunjungan,keluhan_kunjungan,poli_kunjungan,biaya_kunjungan,no_bpjs_kunjungan) VALUES('".mysqli_real_escape_string($koneksi, $_POST[""][$i])."','".$idpasien."','".$_POST['tanggalkunjungan'][$i]."','".$_POST['keluhankunjungan'][$i]."','".$_POST['polikunjungan'][$i]."','".$_POST['biaya'][$i]."','".$_POST['nobpjs'][$i]."')";  
                 mysqli_query($koneksi, $addkunjungan);  
            }  
       }  

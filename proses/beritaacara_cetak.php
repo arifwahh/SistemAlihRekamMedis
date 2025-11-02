@@ -125,7 +125,7 @@ $html = '
             '.$row['saksi_nip_ba'].'
         </div>
         
-        <div class="signature-block" style="float: right;">
+        <div class="right-align" style="float: right;">
             ('.$row['pj_apoteker_ba'].')<br>
             '.$row['pj_nip_ba'].'
         </div>

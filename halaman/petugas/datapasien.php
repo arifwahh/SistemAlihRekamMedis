@@ -529,7 +529,7 @@ function initBPJSBehavior(modalId) {
                     </select>
                 </td>
                 <td>
-                    <input type="text" name="nobpjs[]" class="form-control nobpjs-kunjungan-edit">
+                    <input type="text" name="nobpjs[]" class="form-control nobpjs-kunjungan-edit" readonly>
                 </td>
                 <td>
                     <button type="button" class="btn btn-danger btn-remove-row" onclick="removeRow(this)">Hapus</button>
